@@ -57,6 +57,7 @@ from pyswap.components.tables import (
     FSTB,
     GCTB,
     KYTB,
+    LAITB,
     LSDATB,
     LSDBTB,
     MRFTB,
@@ -108,6 +109,7 @@ __all__ = [
     "RDTB",
     "RDCTB",
     "GCTB",
+    "LAITB",
     "CFTB",
     "CHTB",
     "KYTB",
@@ -193,7 +195,7 @@ class CropDevelopmentSettings(
 
     swcf: _Literal[1, 2] | None = None
     cftb: _Table | None = None
-    chtb: _Table | None = None
+    chtb: _Arrays | None = None
     albedo: _Decimal2f | None = _Field(default=None, **_UNITRANGE)
     rsc: _Decimal2f | None = _Field(default=None, ge=0.0, le=1.0e6)
     rsw: _Decimal2f | None = _Field(default=None, ge=0.0, le=1.0e6)
@@ -311,15 +313,15 @@ class CropDevelopmentSettingsFixed(CropDevelopmentSettings):
 
             * 1 - LAI
             * 2 - SCF
-
-        gctb  _Arrays): Soil Cover Fraction as a function of development stage
+        gctb  (_Arrays): Soil Cover Fraction as a function of development stage
+        laitb (_Arrays): Leaf Area Index as a function of development stage (version SWAP >= 4.2.202)
     """
 
     idev: _Literal[1, 2] | None = None
     lcc: int | None = _Field(default=None, **_YEARRANGE)
     swgc: _Literal[1, 2] | None = None
     gctb: _Arrays | None = None
-    kytb: _Arrays | None = None
+    laitb: _Arrays | None = None
 
 
 class CropDevelopmentSettingsGrass(CropDevelopmentSettingsWOFOST):
@@ -371,11 +373,11 @@ class OxygenStress(_PySWAPBaseModel, _SerializableMixin, _YAMLValidatorMixin):
             * 1 - Calculate root radius
             * 2 - Root radius given in an input file
 
+        rootradius (Optional[float]): Root radius for oxygen stress module
         dry_mat_cont_roots (Optional[float]): Dry matter content of roots
         air_filled_root_por (Optional[float]): Air filled root porosity
         spec_weight_root_tissue (Optional[float]): Specific weight of non-airfilled root tissue
         var_a (Optional[float]): Variance of root radius
-        root_radiuso2 (Optional[float]): Root radius for oxygen stress module
         q10_root (Optional[float]): Relative increase in root respiration at temperature increase of 10 oC
         f_senes (Optional[float]): Reduction factor for senescence, used for maintenance respiration
         c_mroot (Optional[float]): Maintenance coefficient of root
@@ -402,12 +404,17 @@ class OxygenStress(_PySWAPBaseModel, _SerializableMixin, _YAMLValidatorMixin):
     air_filled_root_por: float | None = _Field(default=None, **_UNITRANGE)
     spec_weight_root_tissue: float | None = _Field(default=None, ge=0.0, le=1.0e5)
     var_a: float | None = _Field(default=None, **_UNITRANGE)
-    root_radiuso2: float | None = _Field(default=None, ge=1.0e-6, le=0.1)
+    rootradius: float | None = _Field(default=None, ge=1.0e-6, le=0.1)
     q10_root: float | None = _Field(default=None, ge=1.0, le=4.0)
     f_senes: float | None = _Field(default=None, **_UNITRANGE)
     c_mroot: float | None = _Field(default=None, **_UNITRANGE)
     mrftb: _Arrays | None = None
     wrtb: _Arrays | None = None
+    # Parameters for version 4.2.202
+    # swoygen=2
+    campbell_h100: float | None = _Field(default=None, ge=-1.6e4, le=0.0)
+    campbellh500: float | None = _Field(default=None, ge=-1.6e4, le=0.0)
+    gfp_h100: float | None = _Field(default=None, ge=-1.6e4, le=0.0)
 
 
 class DroughtStress(_PySWAPBaseModel, _SerializableMixin, _YAMLValidatorMixin):
@@ -417,47 +424,90 @@ class DroughtStress(_PySWAPBaseModel, _SerializableMixin, _YAMLValidatorMixin):
         swdrought (Literal[1, 2]): Switch for drought stress
 
             * 1 - Drought stress according to Feddes et al. (1978)
-            * 2 - rought stress according to De Jong van Lier et al. (2008)
+            * 2 - Drought stress according to De Jong van Lier et al. (2008)
 
         swjarvis (Optional[Literal[0, 1, 2, 3, 4]]): _DEPRECATED_ Switch for Jarvis model for water uptake reduction
         alphcrit: Optional[float] = _DEPRECATED_ Critical stress index (Jarvis, 1989) for compensation of root water uptake [0.2..1 -, R]
+        # swdrought = 1
         hlim3h (Optional[float]): Pressure head below which water uptake reduction starts at high Tpot
         hlim3l (Optional[float]): Pressure head below which water uptake reduction starts at low Tpot
         hlim4 (Optional[float]): No water extraction at lower soil water pressure heads
         adcrh (Optional[float]): Level of high atmospheric demand, corresponding to HLIM3H
         adcrl (Optional[float]): Level of low atmospheric demand, corresponding to HLIM3L
         wiltpoint (Optional[float]): Minimum pressure head in leaves
-        kstem (Optional[float]): Hydraulic conductance between leaf and root xylem
-        rxylem (Optional[float]): Xylem radius
-        rootradius (Optional[float]): Root radius
-        kroot (Optional[float]): Radial hydraulic conductivity of root tissue
+        # swdrought = 2
+        lstem (Optional[float]): Hydraulic conductance between leaf and root xylem
+        rootxylem (Optional[float]): Xylem radius
+        rootradius (Optional[float]): Root radius, ALSO DEFINED IN OXYGEN STRESS
         rootcoefa (Optional[float]): Defines relative distance between roots at which mean soil water content occurs
-        swhydrlift (Optional[Literal[0, 1]]): Switch for possibility hydraulic lift in root system
         rooteff (Optional[float]): Root system efficiency factor
+        # swdrought = 3
+        lstem_a1 (Optional[float]): Slope of linear L1(Tp) relationship
+        lstem_a0 (Optional[float]): Intercept of linear L1(Tp) relationship
+        # swdrought = 2 or 3
+        kroot (Optional[float]): Root hydraulic conductance
+        pcamp (Optional[float]): Exponent in Campbell sigmoidal T reduction function [1..500, -]
+        hlhalf (Optional[float]): Leaf or root water potential at which T reduction is 0.5 [1000..50000, cm]
+        # Technical solution parameters
+        tol_2 (Optional[float]): Convergence parameter for final round of Xp guess [1.0d-10..1.0d-3, cm/d; R]
+        mytolx (Optional[float]): Convergence parameter for root finding in myFun [1.0d-10..1.0d-3, cm; R]
+        tolconv (Optional[float]): Final convergence check [1.0d-10..1.0d-3, cm/d; R]
+        factor (Optional[float]): Multiplier/divisor for second round of Xp guess [1.001..10; R]
+        ntrial (Optional[int]): Maximum number of trials in iteration schemes for both Xp and function evaluations [10..10000; I]
+        swtype_tred (Optional[int]): Type of reduction function: 1 = Campbell sigmoidal; 2 = step function [1..2; I]
+        swhydrlift (Optional[Literal[0, 1]]): Switch for possibility hydraulic lift in root system
+        swdosatrel (Optional[Literal[0, 1]]): For layers with h >=0 RWU is proportional to Lrv in those layers; remaining Tpot is then solved by the microscopic RWU model
+        swo2ect (Optional[Literal[1, 2]]): Switch for effect on root water uptake in case of stress by oxygen or solutes
+            * 1 - lrv
+            * 2 - kroot
+        swalptot (Optional[Literal[1, 2]]): Switch for effect on root water uptake in case of stress by oxygen or solutes
+            * 1 - multiply stress by oxygen and solutes
+            * 2 - minimum of oxygen and solutes
+        # Deprecated parameters
         stephr (Optional[float]): Step between values of hroot and hxylem in iteration cycle
         criterhr (Optional[float]): Maximum difference of Hroot between iterations; convergence criterium
         taccur (Optional[float]): Maximum absolute difference between simulated and calculated potential transpiration rate
     """
 
     swdrought: _Literal[1, 2] | None = None
+    # Deprecated parameters
     swjarvis: _Literal[0, 1, 2, 3, 4] | None = None
     alphcrit: float | None = _Field(default=None, ge=0.2, le=1.0)
+    stephr: float | None = _Field(default=None, ge=0.0, le=10.0)
+    criterhr: float | None = _Field(default=None, ge=0.0, le=10.0)
+    taccur: float | None = _Field(default=None, ge=1.0e-5, le=1.0e-2)
+    # swdrought = 1
     hlim3h: float | None = _Field(default=None, ge=-1.0e4, le=100.0)
     hlim3l: float | None = _Field(default=None, ge=-1.0e4, le=100.0)
     hlim4: float | None = _Field(default=None, ge=-1.6e4, le=100.0)
     adcrh: float | None = _Field(default=None, ge=0.0, le=5.0)
     adcrl: float | None = _Field(default=None, ge=0.0, le=5.0)
     wiltpoint: float | None = _Field(default=None, ge=-1.0e8, le=-1.0e2)
-    kstem: float | None = _Field(default=None, ge=1.0e-10, le=10.0)
-    rxylem: float | None = _Field(default=None, ge=1.0e-4, le=1.0)
+    # swdrought = 2
+    lstem: float | None = _Field(default=None, ge=1.0e-10, le=10.0)
+    rootxylem: float | None = _Field(default=None, ge=1.0e-4, le=1.0)
     rootradius: float | None = _Field(default=None, ge=1.0e-4, le=1.0)
-    kroot: float | None = _Field(default=None, ge=1.0e-10, le=1.0e10)
     rootcoefa: float | None = _Field(default=None, **_UNITRANGE)
-    swhydrlift: _Literal[0, 1] | None = None
     rooteff: float | None = _Field(default=None, **_UNITRANGE)
-    stephr: float | None = _Field(default=None, ge=0.0, le=10.0)
-    criterhr: float | None = _Field(default=None, ge=0.0, le=10.0)
-    taccur: float | None = _Field(default=None, ge=1.0e-5, le=1.0e-2)
+    # swdrought = 3
+    lstem_a1: float | None = _Field(default=None, ge=1e-6, le=1e-2)
+    lstem_a0: float | None = _Field(default=None, ge=1e-6, le=1e-2)
+    # swdrought = 2 or 3
+    kroot: float | None = _Field(default=None, ge=1.0e-10, le=1.0e10)
+    pcamp: float | None = _Field(default=None, ge=1.0, le=500.0)
+    hlhalf: float | None = _Field(default=None, ge=-50000.0, le=-1000.0)
+    # Technical solution parameters
+    tol_2: float | None = _Field(default=None, ge=1.0e-10, le=1.0e-3)
+    mytolx: float | None = _Field(default=None, ge=1.0e-10, le=1.0e-3)
+    tolconv: float | None = _Field(default=None, ge=1.0e-10, le=1.0e-3)
+    factor: float | None = _Field(default=None, ge=1.001, le=10.0)
+    ntrial: int | None = _Field(default=None, ge=10, le=10000)
+    swtype_tred: int | None = _Field(default=None, ge=1, le=2)
+    swhydrlift: _Literal[0, 1] | None = None
+    swdosatrel: _Literal[0, 1] | None = None
+    # Effect on RWU
+    swo2ect: _Literal[1, 2] | None = None
+    swalptot: _Literal[1, 2] | None = None
 
 
 class SaltStress(_PySWAPBaseModel, _SerializableMixin, _YAMLValidatorMixin):

@@ -120,6 +120,22 @@ class RDCTB(BaseTableModel):
 class GCTB(BaseTableModel):
     """Leaf Area Index [0..12 (m2 leaf)/(m2 soil), R], as function of dev. stage [0..2 -, R]
 
+    Only for use in SWAP version 4.2.0.
+
+    Attributes:
+        DVS (Series[float]): Development stage of the crop.
+        LAI (Series[float]): Leaf Area Index of the crop.
+    """
+
+    DVS: Series[float] = pa.Field(**DVSRANGE)
+    LAI: Series[float] = pa.Field(ge=0.0, le=12.0)
+
+
+class LAITB(BaseTableModel):
+    """Leaf Area Index [0..12 (m2 leaf)/(m2 soil), R], as function of dev. stage [0..2 -, R]
+
+    Use for SWAP version 4.2.202 and higher.
+
     Attributes:
         DVS (Series[float]): Development stage of the crop.
         LAI (Series[float]): Leaf Area Index of the crop.

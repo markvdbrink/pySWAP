@@ -1,7 +1,7 @@
 import pyswap as psp
 
 
-def _make_simple_test_model():
+def _make_complex_test_model():
     # Generate empty model instance
     ml = psp.Model()
     # ml.swapversion = "4.2.202"
@@ -130,21 +130,44 @@ def _make_simple_test_model():
     # Crop settings
     ## Crop preparation settings
     maize_prep = psp.components.crop.Preparation(
-        swprep=0, swsow=0, swgerm=0, dvsend=3.0, swharv=0
+        # Preparation before crop growth
+        swprep=1,  # Preparation before crop growth; Reference: WWL, 1 at soil 3015
+        zprep=-15.0,  # Soil depth for monitoring work-ability for the crop
+        hprep=-60.0,  # Maximum pressure head during preparation [cm]
+        maxprepdelay=30,  # Maximum delay in preparation from start of growing season [days]
+        # Sowing
+        swsow=1,  # Sowing before crop growth
+        zsow=-15.0,  # Soil depth for monitoring work-ability for the crop
+        hsow=-60.0,  # Maximum pressure head during sowing [cm]
+        ztempsow=-6.0,  # Soil depth for monitoring temperature for sowing
+        tempsow=9.0,  # Soil temperature needed for sowing [degC]
+        maxsowdelay=30,  # Maximum delay in sowing from start of growing season [days]
+        # Germination
+        swgerm=2,  # Simulate germination depending on temperature and hydrological conditions
+        tsumemeopt=110.0,  # Temperature sum needed for crop emergence [degC]
+        tbasem=4.0,  # Minimum temperature used for germination trajectory [degC]
+        teffmx=30.0,  # Maximum temperature used for germination trajectory [degC]
+        hdrygerm=-500.0,  # Pressure head rootzone for dry germination trajectory [cm]
+        hwetgerm=-50.0,  # Pressure head rootzone for wet germination trajectory [cm]
+        zgerm=-10.0,  # Soil depth for monitoring average pressure head [cm]
+        agerm=203.0,  # A-coefficient Eq 24/25 Feddes en Van Wijk 1988
+        # Harvest
+        dvsend=2.0,  # Development stage at harvest
+        swharv=0,  # Timing of harvest depends on end of growing season
     )
 
     ## Crop development settings
-    dvs = [0.0, 0.3, 0.5, 0.7, 1.0, 1.4, 2.0]
+    # dvs = [0.0, 0.3, 0.5, 0.7, 1.0, 1.4, 2.0]
 
     ## LAI
-    maize_gctb = psp.components.crop.GCTB.create({
-        "DVS": dvs,
-        "LAI": [0.05, 0.14, 0.61, 4.10, 5.00, 5.80, 5.20],
-    })
+    # maize_gctb = psp.components.crop.GCTB.create({
+    #     "DVS": dvs,
+    #     "LAI": [0.05, 0.14, 0.61, 4.10, 5.00, 5.80, 5.20],
+    # })
 
-    ## Crop height
-    maize_cftb = psp.components.crop.CFTB.create({
-        "DVS": dvs,
+    ## Crop height vs development stage
+    maize_chtb = psp.components.crop.CHTB.create({
+        "DVS": [0.0, 0.3, 0.5, 0.7, 1.0, 1.4, 2.0],
         "CH": [1.0, 15.0, 40.0, 140.0, 170.0, 180.0, 175.0],
     })
 
@@ -154,47 +177,80 @@ def _make_simple_test_model():
         "RDENS": [1.0, 0.0],
     })
 
-    ## Root depth TODO: echt zo diep?
-    maize_rdtb = psp.components.crop.RDTB.create({
-        "DVS": [0.0, 0.3, 0.5, 0.7, 1.0, 2.0],
-        "RD": [5.0, 20.0, 50.0, 80.0, 90.0, 100.0],
-    })
+    ### Get WOFOST parameters for maize from database
+    db_wofost = psp.db.WOFOSTCropDB()
+    maize_wofostparams = db_wofost.load_crop_file("maize").get_variety(
+        "Grain_maize_201"
+    )
 
-    ## Fixed crop growing duration
-    maize_cropdev_settings = psp.components.crop.CropDevelopmentSettingsFixed(
-        idev=1,  # Fixed crop growing duration
-        lcc=168,  # duration crop growing period [d]
-        kdif=0.6,  # Diffuse light extinction coefficient
-        kdir=0.75,  # Direct light extinction coefficient
-        swgc=1,  # Use LAI
-        gctb=maize_gctb,
+    ### Define other parameters
+    maize_cropdev_settings = psp.components.crop.CropDevelopmentSettingsWOFOST(
+        # Wofost parameters for maize
+        wofost_variety=maize_wofostparams,
+        # Evaporation parameters
         swcf=2,  # Use crop height
-        cftb=maize_cftb,
-        albedo=0.23,
-        rsc=61.0,  # minimum canopy resistance [s/m] ???? = 1/v? TODO
-        rsw=0.0,  # Canopy resistance for intercepted water [s/m]
-        swrd=1,  # Root growth depends on development stage
-        rdtb=maize_rdtb,
+        chtb=maize_chtb,
+        albedo=0.2,  # Albedo of the crop
+        rsc=167.0,  # Minimum canopy resistance [s/m]
+        rsw=0.0,  # Canopy resistance of intercepted water [s/m]
+        # Initial values
+        laiem=0.04836,  # LAI at emergence [m2/m2]
+        # Green surface area
+        ssa=0.0,  # Specific leaf area [ha/kg]
+        # Assimilation
+        kdif=0.6,  # Extinction coefficient for diffuse light
+        kdir=0.75,  # Extinction coefficient for direct light
+        eff=0.45,  # Light use efficiency [ka/ha/hr/(J m2 s)]
+        # Root development
+        rdc=100.0,  # Maximum root depth [cm]
+        swrd=2,  # Root depth depends on maximum daily increase
+        swdmi2rd=0,  # Rooting depth increase depends on assimilate availability TODO: New module uses also water and oxygen stress
         rdctb=maize_rdctb,
     )
 
-    ## Oxygen stress
-    maize_ox_stress = psp.components.crop.OxygenStress(
-        swoxygen=1,  # Feddes stress function
-        swwrtnonox=0,  # Do not stop root development when anaerobic conditions occur
-        hlim1=-15.0,  # no RWU at higher h
-        hlim2u=-30.0,  # optimal RWU at lower h, upper layer
-        hlim2l=-30.0,  # optimal RWU at lower h, lower layer
+    ### Get parameters from WOFOST database
+    maize_cropdev_settings.update_from_wofost()
+
+    ## Oxygen stress Bartholomeus
+    maize_ox_stress_barth = psp.components.crop.OxygenStress(
+        swoxygen=2,  # Simulate using Bartholomeus et al. 2008
+        swwrtnonox=1,  # Check for aerobic conditions for root development
+        aeratecrit=0.5,  # Critical oxygen stress [0..1] for root development
+        q10_microbial=2.8,  # Relative increase in microbial respiration at temperature increase of 10 degrees C
+        specific_resp_humus=0.0016,  # Respiration rate of humus at 25 degrees C [kg O2/kg degrees C/d]
+        campbell_h100=-100,  # Parameter to define the slope of the soil water retention curve (default: -100) [-16000..0 cm, R]
+        campbell_h500=-500,  # Parameter to define the slope of the soil water retention curve (default: -500) [-16000..CAMPBELL_H100 cm, R]
+        gfp_h100=-100,  # Gass filled porosity at soil water pressure head (default: -100) [-16000..0 cm, R]
+        srl=151375.0,  # Specific root length [m/kg]
+        swrootradius=1,  # Root radius given in input
+        rootradius=0.015,  # Root radius [cm]
+        # Not in WWL, vaues assumed
+        dry_mat_cont_roots=0.5,
+        air_filled_root_por=0.5,
+        spec_weight_root_tissue=1000,
+        var_a=0.5,
     )
 
     ## Drought stress
     maize_dr_stress = psp.components.crop.DroughtStress(
-        swdrought=1,  # Feddes stress function
-        hlim3h=-325.0,  # h below which RWU reduction starts at high Tpot
-        hlim3l=-600.0,  # h below which RWU reduction starts at low Tpot
-        hlim4=-8000.0,  # No RWU at h below this value
-        adcrh=0.5,  # High Tpot [cm]
-        adcrl=0.1,  # Low Tpot [cm]
+        swdrought=2,  # dJvL stress function
+        lstem=1.03e-4,  # Hydraulic conductance between leaf and root xylem [/d]
+        rootxylem=0.005,  # Xylem radius [cm]  TODO: WWL gives 0.02, but should be less than rootradius, WWL uses swdrought=3
+        rootcoefa=0.53,  # Defnies relative distance between roots at which mean soil water content occurs
+        rooteff=1.0,  # Root system efficiency factor [-]
+        kroot=3.5e-5,  # Radial hydraulic conductivity of root tissue [cm/d]
+        pcamp=5.0,  # Exponent in Campbell sigmoidal reduction function [-]
+        hlhalf=-16000,  # Leaf or root water potential at which T reduction is 0.5
+        tol_2=1e-6,  # Convergence parameter for final round of Xp guess
+        mytolx=1e-5,  # Convergence parameter for root finding in myFunv
+        tolconv=1e-4,  # Final convergence check; When proper solution was obtained the error will be < TOL_2; so for safety have TOLCONV > TOL_2
+        factor=1.25,  # Multiplier/divisor for second round of Xp guess
+        ntrial=500,  # Maximum number of trials in iteration schemes for both Xp and function evaluations
+        swtype_tred=1,  # Use Campbell sigmoidal reduction function
+        swhydrlift=0,  # No hydraulic lift
+        swdosatrel=0,  # For layers with h >=0 RWU is proportional to Lrv in those layers; remaining Tpot is then solved by the microscopic RWU model
+        swo2ect=1,  # effect on RWU: lrv  TODO???
+        swalptot=1,  # Effect RWU: Multiply stress by oxygen and solutes
     )
 
     ## Interception
@@ -208,7 +264,7 @@ def _make_simple_test_model():
         name="maizes",
         prep=maize_prep,
         cropdev_settings=maize_cropdev_settings,
-        oxygenstress=maize_ox_stress,
+        oxygenstress=maize_ox_stress_barth,
         droughtstress=maize_dr_stress,
         interception=maize_interception,
     )
@@ -218,7 +274,7 @@ def _make_simple_test_model():
         "CROPSTART": ["2000-05-01"],
         "CROPEND": ["2000-10-15"],
         "CROPFIL": ["'maizes'"],
-        "CROPTYPE": [1],
+        "CROPTYPE": [2],
     })
 
     # ## No irrigation
@@ -272,13 +328,42 @@ def _make_simple_test_model():
     )
     ml.lateraldrainage = drainage
 
+    # Add heat flow
+    ## Soil textures for each physical layer
+    soiltextures = psp.components.transport.SOILTEXTURES.create({
+        "PSAND": [0.87, 0.89, 0.89, 0.91],
+        "PSILT": [0.1, 0.08, 0.08, 0.06],
+        "PCLAY": [0.03, 0.03, 0.03, 0.03],
+        "ORGMAT": [0.057, 0.022, 0.01, 0.003],
+    })  # TODO: get from soil database
+
+    ## Initial soil temperatures; source: WWL
+    initsoiltemp = psp.components.transport.INITSOILTEMP.create({
+        "ZH": [-10.0, -40.0, -70.0, -95.0],
+        "TSOIL": [12.0, 12.0, 10.0, 9.0],
+    })
+
+    heatflow = psp.components.transport.HeatFlow(
+        swhea=1,  # Simulate heat flow in soil
+        swcalt=2,  # Use the numerical method
+        swtopbhea=1,  # Air temperature is top boundary condition
+        swbotbhea=1,  # No heat flux in bottom boundary
+        initsoiltemp=initsoiltemp,
+        soiltextures=soiltextures,
+    )
+    ml.heatflow = heatflow
+
     return ml
 
 
 if __name__ == "__main__":
-    ml = _make_simple_test_model()
-    res1 = ml.run()
+    ml = _make_complex_test_model()
+    # print(ml.swp)
+    # print(ml.crop.cropfiles["maizes"].crp)
+    # print(ml.lateraldrainage.drafile.dra)
+    # print(ml.meteorology.met)
+    # res1 = ml.run()
     ml.swapversion = "4.2.202"
     res2 = ml.run()
-    print(res1.csv)
-    print(res2.csv)
+    # print(res1.yearly_summary)
+    # print(res2.yearly_summary)

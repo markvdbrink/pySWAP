@@ -58,7 +58,7 @@ from pyswap.core.basemodel import PySWAPBaseModel
 from pyswap.core.defaults import IS_WINDOWS
 from pyswap.core.fields import Subsection
 from pyswap.core.io.io_ascii import open_ascii
-from pyswap.libs import swap_linux, swap_windows
+from pyswap.libs import swap_linux, swap_windows_420, swap_windows_42202
 from pyswap.model.result import Result
 from pyswap.utils.mixins import FileMixin, SerializableMixin
 
@@ -86,10 +86,15 @@ class ModelBuilder:
 
     def copy_executable(self) -> None:
         """Copy the appropriate SWAP executable to the temporary directory."""
-        if IS_WINDOWS:
-            shutil.copy(swap_windows, self.tempdir)
+        if IS_WINDOWS and self.model.swapversion == "4.2.202":
+            shutil.copy(swap_windows_42202, self.tempdir)
             logger.info(
-                "Copying the windows version of SWAP into temporary directory..."
+                "Copying the windows version of SWAP 4.2.202 into temporary directory..."
+            )
+        elif IS_WINDOWS:
+            shutil.copy(swap_windows_420, self.tempdir)
+            logger.info(
+                "Copying the windows version of SWAP 4.2.0 into temporary directory..."
             )
         else:
             shutil.copy(swap_linux, self.tempdir)
@@ -276,7 +281,11 @@ class ResultReader:
 
         outfil = self.model.generalsettings.outfil
         output_suffix = "_output.csv" if which == "csv" else "_output_tz.csv"
-        index_col = "DATETIME" if which == "csv" else "DATE"
+        index_col = (
+            "DATETIME"
+            if (which == "csv") and (self.model.swapversion == "4.2.0")
+            else "DATE"
+        )
 
         path = Path(self.tempdir, outfil + output_suffix)
 
@@ -378,6 +387,7 @@ class Model(PySWAPBaseModel, FileMixin, SerializableMixin):
     Attributes:
         metadata (Subsection): Metadata of the model.
         version (str): The version of the model (default: "base").
+        swapversion (str): The version of the SWAP model (default: "4.2.0").
         generalsettings (Subsection): Simulation settings.
         richardsettings (Subsection): Richards settings.
         meteorology (Subsection): Meteorological data.
@@ -404,6 +414,7 @@ class Model(PySWAPBaseModel, FileMixin, SerializableMixin):
 
     metadata: Subsection[Metadata] | None = Field(default=None, repr=False)
     version: str = Field(exclude=True, default="base")
+    swapversion: str = Field(exclude=True, default="4.2.0")
     generalsettings: Subsection[GeneralSettings] | None = Field(
         default=None, repr=False
     )
