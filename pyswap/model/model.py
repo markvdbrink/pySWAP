@@ -86,7 +86,14 @@ class ModelBuilder:
 
     def copy_executable(self) -> None:
         """Copy the appropriate SWAP executable to the temporary directory."""
-        if IS_WINDOWS and self.model.swapversion == "4.2.202":
+        if IS_WINDOWS and self.model.swapversion == "4.2.216":
+            shutil.copy(swap_windows_42202, self.tempdir)
+            logger.info(
+                "Copying the windows version of SWAP 4.2.216 into temporary directory..."
+            )
+        elif IS_WINDOWS and self.model.swapversion == "4.2.202":
+            m = "SWAP version 4.2.202 is outdated. Please use 4.2.216."
+            raise DeprecationWarning(m)
             shutil.copy(swap_windows_42202, self.tempdir)
             logger.info(
                 "Copying the windows version of SWAP 4.2.202 into temporary directory..."
