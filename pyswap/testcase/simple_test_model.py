@@ -102,24 +102,26 @@ def _make_simple_test_model():
     ml.evaporation = evaporation
 
     # Soil profile properties
-    ## Soil profile and hydraulic functions
-    soil_profile, soil_hydraulic_functions = (
-        psp.components.soilwater.input_soil_from_Dutch_standards(
-            bofek_cluster=3015  # Zwak lemig zand, grasland
-        )
+    ## Get soil profile from dutch database
+    soilprofiles_db = psp.db.SoilProfilesDB()
+    soil_profile = soilprofiles_db.get_profile(
+        bofek_cluster=3015,  # Zwak lemig zand, grasland
+    )
+    soil_discr = soil_profile.get_swapinput_profile(
+        discretisation_depths=[50, 30, 60, 60, 100],
+        discretisation_compheights=[1, 2, 5, 10, 20],
     )
 
     soilprofile = psp.components.soilwater.SoilProfile(
         swsophy=0,  # MVG functions
         swhyst=0,  # No hysteresis
         swmacro=0,  # No preferential flow
-        soilprofile=soil_profile,
-        soilhydrfunc=soil_hydraulic_functions,
+        soilprofile=soil_discr,
+        soilhydrfunc=soil_profile.get_swapinput_hydraulic_params(),
     )
     ml.soilprofile = soilprofile
 
     # Bottom boundary condition
-    ## TODO: many options available, check them out
     bottom_boundary = psp.components.boundary.BottomBoundary(
         swbbcfile=0,  # Do not specify in separate file
         swbotb=6,  # Bottom flux equals zero
@@ -270,6 +272,31 @@ def _make_simple_test_model():
         drafile=dra,
     )
     ml.lateraldrainage = drainage
+
+    # Heat flow
+    # Soil textures for each physical layer
+    soiltextures = psp.components.transport.SOILTEXTURES.create({
+        "PSAND": [0.87, 0.89, 0.89, 0.91],
+        "PSILT": [0.1, 0.08, 0.08, 0.06],
+        "PCLAY": [0.03, 0.03, 0.03, 0.03],
+        "ORGMAT": [0.057, 0.022, 0.01, 0.003],
+    })  # TODO: get from soil database
+
+    # Initial soil temperatures; source: WWL
+    initsoiltemp = psp.components.transport.INITSOILTEMP.create({
+        "ZH": [-10.0, -40.0, -70.0, -95.0],
+        "TSOIL": [12.0, 12.0, 10.0, 9.0],
+    })
+
+    heatflow = psp.components.transport.HeatFlow(
+        swhea=1,  # Simulate heat flow in soil
+        swcalt=2,  # Use the numerical method
+        swtopbhea=1,  # Air temperature is top boundary condition
+        swbotbhea=1,  # No heat flux in bottom boundary
+        initsoiltemp=initsoiltemp,
+        soiltextures=soiltextures,
+    )
+    ml.heatflow = heatflow
 
     return ml
 
