@@ -194,7 +194,7 @@ class CropDevelopmentSettings(
     wofost_variety: Any | None = _Field(default=None, exclude=True)
 
     swcf: _Literal[1, 2] | None = None
-    cftb: _Table | None = None
+    cftb: _Arrays | None = None
     chtb: _Arrays | None = None
     albedo: _Decimal2f | None = _Field(default=None, **_UNITRANGE)
     rsc: _Decimal2f | None = _Field(default=None, ge=0.0, le=1.0e6)
