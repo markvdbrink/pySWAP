@@ -182,7 +182,9 @@ class _CropDevelopmentSettings(
         swrdc (Literal[0, 1]): Switch for calculation of relative root density.
             * 0 - Root density is not modified.
             * 1 - Root density is modified based on root water extraction.
-        TODO: add parameters related to swdrc=1: fgwrt, fdwrt, wrtmin
+        fgwrt (float): Factor of growth rate of dry weight plant root which is adaptive [0.0..1.5 -]
+        fdwrt (float): Factor of death rate of dry weight plant root which is adaptive [0.0..1.5 -]
+        wrtmin (float): Minimum dry weigth plant root at each soil compartment [0.0..10.0 kg/ha]
         rdctb (_Arrays): root density [0..1 -] as function of relative rooting depth [0..1 -].
     """
 
@@ -213,6 +215,9 @@ class _CropDevelopmentSettings(
     rlwtb: _Arrays | None = None
     wrtmax: _Decimal2f | None = _Field(default=None, ge=0.0, le=1.0e5)
     swrdc: _Literal[0, 1] | None = None
+    fgwrt: _Decimal2f | None = _Field(default=None, ge=0.0, le=1.5)
+    fdwrt: _Decimal2f | None = _Field(default=None, ge=0.0, le=1.5)
+    wrtmin: _Decimal2f | None = _Field(default=None, ge=0.0, le=10.0)
     rdctb: _Arrays | None = None
 
 
@@ -250,7 +255,9 @@ class CropDevelopmentSettingsWOFOST(_CropDevelopmentSettings):
         swrdc (Literal[0, 1]): Switch for calculation of relative root density.
             * 0 - Root density is not modified.
             * 1 - Root density is modified based on root water extraction.
-        TODO: add parameters related to swdrc=1: fgwrt, fdwrt, wrtmin
+        fgwrt (float): Factor of growth rate of dry weight plant root which is adaptive [0.0..1.5 -]
+        fdwrt (float): Factor of death rate of dry weight plant root which is adaptive [0.0..1.5 -]
+        wrtmin (float): Minimum dry weigth plant root at each soil compartment [0.0..10.0 kg/ha]
         rdctb (_Arrays): root density [0..1 -] as function of relative rooting depth [0..1 -].
         idsl (Literal[0, 1, 2]): Switch for crop development.
             * 0 - Depends on temperature
@@ -364,7 +371,9 @@ class CropDevelopmentSettingsFixed(_CropDevelopmentSettings):
         swrdc (Literal[0, 1]): Switch for calculation of relative root density.
             * 0 - Root density is not modified.
             * 1 - Root density is modified based on root water extraction.
-        TODO: add parameters related to swdrc=1: fgwrt, fdwrt, wrtmin
+        fgwrt (float): Factor of growth rate of dry weight plant root which is adaptive [0.0..1.5 -]
+        fdwrt (float): Factor of death rate of dry weight plant root which is adaptive [0.0..1.5 -]
+        wrtmin (float): Minimum dry weigth plant root at each soil compartment [0.0..10.0 kg/ha]
         rdctb (_Arrays): root density [0..1 -] as function of relative rooting depth [0..1 -].
         idev (Literal[1, 2]): Duration of crop growing period
 
