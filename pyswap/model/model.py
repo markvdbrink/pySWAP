@@ -240,7 +240,7 @@ class ModelRunner:
             stdout = self.run_swap(tempdir)
 
             if "normal completion" not in stdout:
-                msg = f"Model run failed. \n {stdout}"
+                msg = f"Model run {self.model.version} failed. \n {stdout}"
                 raise RuntimeError(msg)
 
             logger.info(stdout)
