@@ -174,9 +174,12 @@ class _CropDevelopmentSettings(
         rdi (float): Initial rooting depth [0..1000 cm].
         rri (float): Maximum daily increase in rooting depth [0..100 cm].
         rdc (float): Maximum rooting depth of particular crop [0..1000 cm].
-        swdmi2rd (Optional[Literal[0, 1]]): Switch for calculation rooting depth.
+        swdmi2rd (Optional[Literal[0, 1, 2]]): Switch for calculation rooting depth.
             * 0 - Rooting depth increase is related to availability assimilates for roots.
             * 1 - Rooting depth increase is related to relative dry matter increase.
+            * 2 - Rooting depth increase is related to drought stress (define rrimin, extentcrit)
+        rrimin (float): minimum root extension in case of no reduction of root water uptake by drought stress [0..100 cm/d]
+        extentcrit (float): threshold for maximum root extension [0..1 -]
         rlwtb (Optional _Arrays]): rooting depth [0..5000 cm] as function of root weight [0..5000 kg DM/ha].
         wrtmax (float): Maximum root weight [0..1e5 kg DM/ha].
         swrdc (Literal[0, 1]): Switch for calculation of relative root density.
@@ -211,7 +214,9 @@ class _CropDevelopmentSettings(
     rdi: _Decimal2f | None = _Field(default=None, ge=0.0, le=1000.0)
     rri: _Decimal2f | None = _Field(default=None, ge=0.0, le=100.0)
     rdc: _Decimal2f | None = _Field(default=None, ge=0.0, le=1000.0)
-    swdmi2rd: _Literal[0, 1] | None = None
+    swdmi2rd: _Literal[0, 1, 2] | None = None
+    rrimin: _Decimal2f | None = _Field(default=None, ge=0.0, le=100.0)
+    extentcrit: _Decimal2f | None = _Field(default=None, ge=0.0, le=1.0)
     rlwtb: _Arrays | None = None
     wrtmax: _Decimal2f | None = _Field(default=None, ge=0.0, le=1.0e5)
     swrdc: _Literal[0, 1] | None = None
@@ -247,9 +252,12 @@ class CropDevelopmentSettingsWOFOST(_CropDevelopmentSettings):
         rdi (float): Initial rooting depth [0..1000 cm].
         rri (float): Maximum daily increase in rooting depth [0..100 cm].
         rdc (float): Maximum rooting depth of particular crop [0..1000 cm].
-        swdmi2rd (Optional[Literal[0, 1]]): Switch for calculation rooting depth.
+        swdmi2rd (Optional[Literal[0, 1, 2]]): Switch for calculation rooting depth.
             * 0 - Rooting depth increase is related to availability assimilates for roots.
             * 1 - Rooting depth increase is related to relative dry matter increase.
+            * 2 - Rooting depth increase is related to drought stress (define rrimin, extentcrit)
+        rrimin (float): minimum root extension in case of no reduction of root water uptake by drought stress [0..100 cm/d]
+        extentcrit (float): threshold for maximum root extension [0..1 -]
         rlwtb (Optional _Arrays]): rooting depth [0..5000 cm] as function of root weight [0..5000 kg DM/ha].
         wrtmax (float): Maximum root weight [0..1e5 kg DM/ha].
         swrdc (Literal[0, 1]): Switch for calculation of relative root density.
@@ -363,9 +371,12 @@ class CropDevelopmentSettingsFixed(_CropDevelopmentSettings):
         rdi (float): Initial rooting depth [0..1000 cm].
         rri (float): Maximum daily increase in rooting depth [0..100 cm].
         rdc (float): Maximum rooting depth of particular crop [0..1000 cm].
-        swdmi2rd (Optional[Literal[0, 1]]): Switch for calculation rooting depth.
+        swdmi2rd (Optional[Literal[0, 1, 2]]): Switch for calculation rooting depth.
             * 0 - Rooting depth increase is related to availability assimilates for roots.
             * 1 - Rooting depth increase is related to relative dry matter increase.
+            * 2 - Rooting depth increase is related to drought stress (define rrimin, extentcrit)
+        rrimin (float): minimum root extension in case of no reduction of root water uptake by drought stress [0..100 cm/d]
+        extentcrit (float): threshold for maximum root extension [0..1 -]
         rlwtb (Optional _Arrays]): rooting depth [0..5000 cm] as function of root weight [0..5000 kg DM/ha].
         wrtmax (float): Maximum root weight [0..1e5 kg DM/ha].
         swrdc (Literal[0, 1]): Switch for calculation of relative root density.
