@@ -520,6 +520,7 @@ class DroughtStress(_PySWAPBaseModel, _SerializableMixin, _YAMLValidatorMixin):
         kroot (Optional[float]): Root hydraulic conductance
         pcamp (Optional[float]): Exponent in Campbell sigmoidal T reduction function [1..500, -]
         hlhalf (Optional[float]): Leaf or root water potential at which T reduction is 0.5 [1000..50000, cm]
+        srl (Optional[float]): Specific root length [0.0..1.0e10, cm/cm2]
         # Technical solution parameters
         tol_2 (Optional[float]): Convergence parameter for final round of Xp guess [1.0d-10..1.0d-3, cm/d; R]
         mytolx (Optional[float]): Convergence parameter for root finding in myFun [1.0d-10..1.0d-3, cm; R]
@@ -568,6 +569,7 @@ class DroughtStress(_PySWAPBaseModel, _SerializableMixin, _YAMLValidatorMixin):
     kroot: float | None = _Field(default=None, ge=1.0e-10, le=1.0e10)
     pcamp: float | None = _Field(default=None, ge=1.0, le=500.0)
     hlhalf: float | None = _Field(default=None, ge=-50000.0, le=-1000.0)
+    srl: float | None = _Field(default=None, ge=0.0, le=1.0e10)
     # Technical solution parameters
     tol_2: float | None = _Field(default=None, ge=1.0e-10, le=1.0e-3)
     mytolx: float | None = _Field(default=None, ge=1.0e-10, le=1.0e-3)
