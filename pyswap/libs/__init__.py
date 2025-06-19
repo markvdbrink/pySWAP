@@ -38,6 +38,9 @@ swap_windows_42202: Traversable = libs / "swap42202-exe" / "swap.exe"
 swap_windows_42216: Traversable = libs / "swap42216-exe" / "swap.exe"
 """The directory of the SWAP42216 Windows executable."""
 
+swap_windows_42233: Traversable = libs / "swap42233-exe" / "swap.exe"
+"""The directory of the SWAP42216 Windows executable."""
+
 crop_params: Traversable = libs / "WOFOST_crop_parameters"
 """The directory of WOFOST crop parameters."""
 

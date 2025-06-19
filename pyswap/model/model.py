@@ -64,6 +64,7 @@ from pyswap.libs import (
     swap_windows_420,
     swap_windows_42202,
     swap_windows_42216,
+    swap_windows_42233,
 )
 from pyswap.model.result import Result
 from pyswap.utils.mixins import FileMixin, SerializableMixin
@@ -92,7 +93,12 @@ class ModelBuilder:
 
     def copy_executable(self) -> None:
         """Copy the appropriate SWAP executable to the temporary directory."""
-        if IS_WINDOWS and self.model.swapversion == "4.2.216":
+        if IS_WINDOWS and self.model.swapversion == "4.2.233":
+            shutil.copy(swap_windows_42233, self.tempdir)
+            logger.info(
+                "Copying the windows version of SWAP 4.2.233 into temporary directory..."
+            )
+        elif IS_WINDOWS and self.model.swapversion == "4.2.216":
             shutil.copy(swap_windows_42216, self.tempdir)
             logger.info(
                 "Copying the windows version of SWAP 4.2.216 into temporary directory..."
