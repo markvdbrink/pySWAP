@@ -300,12 +300,3 @@ def _make_simple_test_model():
     ml.heatflow = heatflow
 
     return ml
-
-
-if __name__ == "__main__":
-    ml = _make_simple_test_model()
-    res1 = ml.run()
-    ml.swapversion = "4.2.202"
-    res2 = ml.run()
-    print(res1.csv)
-    print(res2.csv)

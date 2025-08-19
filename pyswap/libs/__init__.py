@@ -47,9 +47,4 @@ crop_params: Traversable = libs / "WOFOST_crop_parameters"
 plotting: Traversable = libs / "plotting"
 """The directory of plotting resources."""
 
-soilprofiles_dutch: Traversable = (
-    libs / "soilprofiles_dutch" / "soilprofiles_bofekRpackage.csv"
-)
-"""The directory of soil profile parameters."""
-
 co2concentration: Traversable = libs / "co2-concentration" / "Atmospheric.co2"
