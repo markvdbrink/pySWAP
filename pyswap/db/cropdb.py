@@ -69,7 +69,7 @@ class WOFOSTCropFile(BaseModel):
 
     def get_ecotype(self, ecotype: str):
         return CropVariety(
-            variety=self.yaml_content["CropParameters"]["Ecotypes"][ecotype]
+            variety=self.yaml_content["CropParameters"]["EcoTypes"][ecotype]
         )
 
 
