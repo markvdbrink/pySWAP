@@ -31,7 +31,7 @@ CropDevelopmentSettingsWOFOST:
       - vernsat
       - vernbase
       - verndvs
-      - verntb
+      - vernrtb
 
 OxygenStress:
   swoxygen:

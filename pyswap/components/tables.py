@@ -18,6 +18,7 @@ __all__ = [
     "WRTB",
     "CROPROTATION",
     "DTSMTB",
+    "VERNRTB",
     "SLATB",
     "AMAXTB",
     "TMPFTB",
@@ -55,6 +56,7 @@ crop_tables = [
     "WRTB",
     "CROPROTATION",
     "DTSMTB",
+    "VERNRTB",
     "SLATB",
     "AMAXTB",
     "TMPFTB",
@@ -266,6 +268,18 @@ class DTSMTB(BaseTableModel):
 
     TAV: Series[float] = pa.Field(ge=0.0, le=100.0)
     DTSM: Series[float] = pa.Field(ge=0.0, le=60.0)
+
+
+class VERNRTB(BaseTableModel):
+    """rate of vernalisation as function of average air temperature [d/degrees C]
+
+    Attributes:
+        TAV (Series[float]): Daily average temperature.
+        VERNRATE (Series[float]): Rate of vernalisation
+    """
+
+    TAV: Series[float] = pa.Field(ge=-100.0, le=100.0)
+    VERNRATE: Series[float] = pa.Field(ge=0.0, le=1.0)
 
 
 class SLATB(BaseTableModel):
