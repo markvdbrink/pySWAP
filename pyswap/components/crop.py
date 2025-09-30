@@ -401,7 +401,7 @@ class CropDevelopmentSettingsFixed(_CropDevelopmentSettings):
     """
 
     idev: _Literal[1, 2] | None = None
-    lcc: int | None = _Field(default=None, **_YEARRANGE)
+    lcc: int | None = _Field(default=None, ge=1.0, le=366.0)
     swgc: _Literal[1, 2] | None = None
     gctb: _Arrays | None = None
     laitb: _Arrays | None = None

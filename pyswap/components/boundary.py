@@ -130,7 +130,7 @@ class BottomBoundary(
         sinave (Optional[Decimal2f]): Average value of bottom flux.
         sinamp (Optional[Decimal2f]): Amplitude of bottom flux sine function.
         sinmax (Optional[Decimal2f]): Time of the year with maximum bottom flux.
-        shape (Optional[Decimal2f]): Shape factor to derive average groundwater
+        shape_3 (Optional[Decimal2f]): Shape factor to derive average groundwater
             level.
         hdrain (Optional[Decimal2f]): Mean drain base to correct for average
             groundwater level.
@@ -172,7 +172,7 @@ class BottomBoundary(
     sinave: _Decimal2f | None = _Field(ge=-10.0, le=10.0, default=None)
     sinamp: _Decimal2f | None = _Field(ge=-10.0, le=10.0, default=None)
     sinmax: _Decimal2f | None = _Field(**_YEARRANGE, default=None)
-    shape: _Decimal2f | None = _Field(**_UNITRANGE, default=None)
+    shape_3: _Decimal2f | None = _Field(**_UNITRANGE, default=None)
     hdrain: _Decimal2f | None = _Field(ge=-10000.0, le=0.0, default=None)
     rimlay: _Decimal2f | None = _Field(ge=0, le=100000.0, default=None)
     aqave: _Decimal2f | None = _Field(ge=-10000, le=1000, default=None)
