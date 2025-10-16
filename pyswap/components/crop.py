@@ -46,6 +46,9 @@ from pyswap.components.tables import (
     AMAXTB,
     CFTB,
     CHTB,
+    CO2AMAXTB,
+    CO2EFFTB,
+    CO2TRATB,
     CROPROTATION,
     DMGRZTB,
     DMMOWDELAY,
@@ -132,6 +135,9 @@ __all__ = [
     "RLWTB",
     "DMMOWTB",
     "DMMOWDELAY",
+    "CO2EFFTB",
+    "CO2AMAXTB",
+    "CO2TRATB",
 ]
 
 
