@@ -510,6 +510,30 @@ class DMMOWDELAY(BaseTableModel):
     DAYDELAY: Series[int] = pa.Field(**YEARRANGE)
 
 
+class LOSSMOWTB(BaseTableModel):
+    """Relation between pressure head [-1000..0 cm, R] and fraction of dry matter losses [0..1 -, R] during mowing.
+
+    Attributes:
+        HMOW: (Series[float]): Pressure head
+        HLOSSMOW: (Series[float]): Fraction of dry matter losses
+    """
+
+    HMOW: Series[float] = pa.Field(ge=-1000, le=0)
+    HLOSSMOW: Series[float] = pa.Field(**UNITRANGE)
+
+
+class DELAYMOWTB(BaseTableModel):
+    """Relation between dry matter harvest [0..1d6 kg/ha, R] and days of delay in regrowth [0..366 d, I] after mowing
+
+    Attributes:
+        DMMOWDELAY (Series[float]): Dry matter harvest [0..1d6 kg/ha, R]
+        DAYDELAY (Series[float]): days of delay in regrowth [0..366 d, I]
+    """
+
+    DMMOWDELAY: Series[float] = pa.Field(ge=0.0, le=1.0e6)
+    DAYDELAY: Series[float] = pa.Field(**YEARRANGE)
+
+
 class IRRIGEVENTS(BaseTableModel):
     """information for each fixed irrigation event.
 

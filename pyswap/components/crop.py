@@ -50,6 +50,7 @@ from pyswap.components.tables import (
     CO2EFFTB,
     CO2TRATB,
     CROPROTATION,
+    DELAYMOWTB,
     DMGRZTB,
     DMMOWDELAY,
     DMMOWTB,
@@ -61,6 +62,7 @@ from pyswap.components.tables import (
     GCTB,
     KYTB,
     LAITB,
+    LOSSMOWTB,
     LSDATB,
     LSDBTB,
     MRFTB,
@@ -120,6 +122,7 @@ __all__ = [
     "WRTB",
     "CROPROTATION",
     "DTSMTB",
+    "DELAYMOWTB",
     "SLATB",
     "AMAXTB",
     "TMPFTB",
@@ -134,6 +137,7 @@ __all__ = [
     "DMGRZTB",
     "LSDATB",
     "LSDBTB",
+    "LOSSMOWTB",
     "RLWTB",
     "DMMOWTB",
     "DMMOWDELAY",
@@ -314,6 +318,7 @@ class CropDevelopmentSettingsWOFOST(_CropDevelopmentSettings):
         rdrstb (_Arrays): List relative death rates of stems [0..1 kg/kg/d] as function of development stage.
     """
 
+    swwofost: _Literal[1, 2, 3] = 1
     idsl: _Literal[0, 1, 2] | None = None
     dtsmtb: _Arrays | None = None
     dlo: float | None = _Field(default=None, ge=0.0, le=24.0)
@@ -808,7 +813,7 @@ class GrasslandManagement(_PySWAPBaseModel, _SerializableMixin, _YAMLValidatorMi
             * 1 - Losses due to treading
 
         mowrest Optional[(float)]: Remaining yield above ground after mowing event [0..1d6 kg DM/ha, R]
-        _table_dmmowdelay Optional[(Optional[_Table])]: Relation between dry matter harvest [0..1d6 kg/ha, R] and days of delay in regrowth [0..366 d, I] after mowing
+        dmmowdelay Optional[_Table)]: Relation between dry matter harvest [0..1d6 kg/ha, R] and days of delay in regrowth [0..366 d, I] after mowing
         swpotrelmf (int): Switch for calculation of potential yield
 
             * 1 - theoretical potential yield
@@ -840,6 +845,14 @@ class GrasslandManagement(_PySWAPBaseModel, _SerializableMixin, _YAMLValidatorMi
     dmmowdelay: _Table | None = None
     swpotrelmf: int | None = None
     relmf: _Decimal2f | None = None
+    # New variables in 4.2.233: mowing
+    seqgrzmow: _IntList | None = None
+    mxgdmow: int | None = None
+    dmrestmow: _Decimal2f | None = None
+    swlossmow: _Literal[0, 1] | None = None
+    zmow: _Decimal2f | None = None
+    lossmowtb: _Arrays | None = None
+    delaymowtb: _Arrays | None = None
 
 
 class CropFile(_PySWAPBaseModel, _FileMixin, _SerializableMixin):
