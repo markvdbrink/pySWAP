@@ -1,4 +1,4 @@
-# pySWAP - Python wraper for SWAP hydrological model
+# pySWAP - Python wrapper for SWAP hydrological model
 
 [![Tests](https://github.com/zawadzkim/pySWAP/actions/workflows/tests.yaml/badge.svg)](https://github.com/zawadzkim/pySWAP/actions/workflows/tests.yaml)
 [![codecov](https://codecov.io/gh/zawadzkim/pySWAP/graph/badge.svg?token=TG8KU0S6PM)](https://codecov.io/gh/zawadzkim/pySWAP)
@@ -10,11 +10,7 @@
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/zawadzkim/pySWAP/notebooks)
 [![DOI](https://zenodo.org/badge/757418278.svg)](https://doi.org/10.5281/zenodo.14884487)
 
-pySWAP is a Python wrapper (not Python implementation) for the SWAP hydrological model ([link to the model website](https://www.swap.alterra.nl/)). It simplifies the creation of input files, execution of the SWAP model, and analysis and visualization of results. Users can set up and document their models in Jupyter notebooks, enhancing transparency, collaboration, and facilitating community-supported debugging.
-
-## Contributing
-
-pySWAP is in the early stages of development so any contributions are highly encouraged. You can open issues, submit pull requests, or initiate discussions on GitHub. For more details on how you can contribute, visit the [CONTRIBUTE](./docs/CONTRIBUTING.md) section and get involved!
+pySWAP is a Python wrapper (not Python implementation) for the [SWAP hydrological model](https://www.swap.alterra.nl/). It simplifies the (parallel) creation of input files, execution of the SWAP model, and analysis and visualization of results. Users can set up and document their models in Jupyter notebooks, enhancing transparency, collaboration, and facilitating community-supported debugging.
 
 ## Help
 
@@ -34,7 +30,7 @@ You can also clone the repository from github:
 git clone --recurse-submodules https://github.com/zawadzkim/pySWAP.git
 ```
 
-Notice, that there is the recurse-submodules flag that makes sure additional libraries are also cloned.
+Notice, that there is the `--recurse-submodules` flag that ensures additional libraries (such as the WOFOST crop parameters database) are also cloned.
 
 ## Docker
 
@@ -47,3 +43,11 @@ python your-script.py
 ```
 
 For detailed Docker instructions, see the [Docker documentation](docs/user-guide/docker.md).
+
+## Contributing
+
+pySWAP is in the early stages of development so any contributions are highly encouraged. You can open issues, submit pull requests, or initiate discussions on GitHub. For more details on how you can contribute, visit the [CONTRIBUTE](https://zawadzkim.github.io/pySWAP/contributing/) section and get involved!
+
+## Funding
+
+This work has been funded by the Interdisciplinary Research Project funding (an internal grant awarded to interdisciplinary research teams at the Vrije Universiteit Brussel) and [WaterScape](https://waterscape.sites.uu.nl/).
