@@ -52,6 +52,7 @@ plugins:
         - tutorials/
   - mkdocs-jupyter:
       execute: true
+      # execute: false  # For faster doc building when testing
   - mkdocstrings:
       handlers:
         python:
@@ -61,7 +62,10 @@ plugins:
             show_symbol_type_toc: true
             show_root_toc_entry: false
             show_root_heading: false
-            heading_level: 2
+            heading_level: 3
+            members_order: "__all__" # Not available for non-sponsors
+          options.extra:
+            order: "__all__"
 
 markdown_extensions:
   - admonition
@@ -84,4 +88,4 @@ markdown_extensions:
   - toc:
       permalink: true
       separator: "_"
-      toc_depth: 2
+      toc_depth: 4
