@@ -34,4 +34,4 @@ DATETIME
 
 ## Turn on the exploration mode
 
-You can play around with the model and result in the terminal, or go to the [tutorial section](/tutorials/) for hands-on exercises or move on to the [next page](/user-guide/ascii-vs-classes/) of the user guide.
+You can play around with the model and result in the terminal, or go to the [tutorial section](../tutorials/index.md) for hands-on exercises or move on to the [next page](ascii-vs-classes.md) of the user guide.

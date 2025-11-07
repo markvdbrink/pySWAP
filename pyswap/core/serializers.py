@@ -59,6 +59,13 @@ def serialize_day_month(value: date) -> str:
 
 
 def serialize_decimal(precision: int):
+    """Serialize a float to a string with the desired precision.
+
+    Arguments:
+        precision (int): The desired number of decimals.
+
+    """
+
     def decimal_serializer(v, info):
         return f"{round(v, precision):.{precision}f}"
 
