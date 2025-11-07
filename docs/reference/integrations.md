@@ -1,5 +1,9 @@
 # Integrations
 
+## WOFOST crop database
+
+::: pyswap.db.cropdb
+
 ## HDF5
 
 ::: pyswap.db.hdf5

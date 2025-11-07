@@ -584,7 +584,27 @@ meteo_tables = [
 
 
 class DAILYMETEODATA(BaseTableModel):
-    """Format detailed daily meteo data.
+    """
+    A typed container model describing a daily meteorological data record as a set
+    of pandas Series columns.
+
+    Attributes:
+        STATION (Series[str]): Station identifier (e.g. station code or name).
+            Expected to be a short string, unique per station in a dataset.
+        DD (Series[str]): Day of month. Stored as strings to preserve leading
+            zeros when present (e.g. "01", "02", ... "31").
+        MM (Series[str]): Month of year as a two-character string (e.g. "01".."12").
+        YYYY (Series[str]): Year as a string (e.g. "2024").
+        RAD (Series[float]): Incoming shortwave (solar) radiation for the day
+            (kJ m^-2 day^-1).
+        TMIN (Series[float]): Daily minimum air temperature (°C).
+        TMAX (Series[float]): Daily maximum air temperature (°C).
+        HUM (Series[float]): Daily mean vapor pressure (kPa).
+        WIND (Series[float]): Daily mean wind speed (m s^-1).
+        RAIN (Series[float]): Daily accumulated precipitation (mm day^-1).
+        ETREF (Series[float]): Reference evapotranspiration for the day (mm day^-1).
+        WET (Series[float]): Fraction (0-1) of the day it was raining,
+            necessary when swrain=1
 
     TODO:
     format decimals in the variables.
@@ -624,6 +644,14 @@ class DETAILEDRAINFALL(BaseTableModel):
 
 
 class RAINFLUX(BaseTableModel):
+    """
+    Mean rainfall intensity as function of Julian time.
+    Maximum of 30 records allowed.
+    Attributes:
+        TIME (Series[float]): day of the year
+        RAINFLUX (Series[float]): rainfall in mm d^-1.
+    """
+
     TIME: Series[float] = pa.Field(**YEARRANGE)
     RAINFLUX: Series[float] = pa.Field(ge=0, le=1000.0)
 

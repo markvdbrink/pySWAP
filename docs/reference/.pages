@@ -1,6 +1,6 @@
 nav:
-    - model-components.md
     - pyswap-model.md
-    - integrations.md
+    - model-components.md
     - visualization.md
+    - integrations.md
     - developer.md

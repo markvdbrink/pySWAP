@@ -1,3 +1,3 @@
 # Visualization
 
-plotting functionality explained
+::: pyswap.core.plot

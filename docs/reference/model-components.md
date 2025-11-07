@@ -16,10 +16,6 @@ all the components that can be used to build a SWAP model.
 
 ::: pyswap.components.crop
 
-### Crop database
-
-::: pyswap.db.cropdb
-
 ## Irrigation
 
 ::: pyswap.components.irrigation
@@ -39,9 +35,3 @@ all the components that can be used to build a SWAP model.
 ## Transport
 
 ::: pyswap.components.transport
-
-# Database
-
-# Plot
-
-::: pyswap.core.plot
