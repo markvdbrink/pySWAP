@@ -13,6 +13,17 @@ import pandera as pa
 import pyswap.components.tables as tables
 from pyswap.core.basemodel import BaseTableModel
 
+__all__ = [
+    "create_array_objects",
+    "create_table_objects",
+    "create_schema_object",
+    "get_schemas_with_columns",
+    "is_dataframe_schema",
+    "match_schema_by_columns",
+    "parse_ascii_file",
+    "remove_comments",
+]
+
 
 def remove_comments(text: str) -> str:
     """Remove comments from a SWAP input file.

@@ -11,18 +11,16 @@
 # securing the subprocess call does not seem like a priority in this project
 """Building, running and parsing the results of a SWAP model run.
 
-When the Model class begun to grow, it was clear that it needed to be refactored
-into a more modular structure. The functionality to build environment, run and
-parse result has been abstracted to 3 classes, focusing the main (and exposed to
-the user) Model class focused on the model components and their interactions.
+The functionality to build environment, run and parse result has been abstracted
+to 3 classes, keeping the main Model class (exposed to the user) focused on the
+model components and their interactions.
+
 The four classes in this module are:
 
-Classes:
-
+    Model: Main class that runs the SWAP model.
     ModelBuilder: Class responsible for building the model components.
     ModelRunner: Class responsible for running the model.
     ResultReader: Class responsible for parsing the model results.
-    Model: Main class that runs the SWAP model.
 """
 
 from __future__ import annotations
@@ -65,11 +63,17 @@ from pyswap.utils.mixins import FileMixin, SerializableMixin
 
 logger = logging.getLogger(__name__)
 
-__all__ = ["Model", "run_parallel"]
+__all__ = [
+    "Model",
+    "Result",
+    "run_parallel",
+    "ModelBuilder",
+    "ModelRunner",
+]
 
 
 class ModelBuilder:
-    """Building model components.
+    """Write SWAP files and executable to temporary directory.
 
     Attributes:
         model (Model): The model to build.
@@ -78,6 +82,7 @@ class ModelBuilder:
     Methods:
         copy_executable: Copy the appropriate SWAP executable to the
             temporary directory.
+        get_inputs: Get the input files in a dictionary
         write_inputs: Write the input files to the temporary directory.
     """
 
@@ -99,7 +104,7 @@ class ModelBuilder:
         return self
 
     def get_inputs(self) -> dict:
-        """Get the inpup files in a dictionary."""
+        """Get the input files in a dictionary."""
         inputs = {}
 
         inputs["swp"] = self.model.swp
@@ -279,10 +284,10 @@ class ResultReader:
         """Read the csv output.
 
         There are two types of csv output files: csv and csv_tz. They are both
-        handle in the same method with mode change.
+        handled in the same method with a mode change.
 
         Parameters:
-            which (str): The type of output file to read.
+            which (str): The type of output file to read: csv or csv_tz.
 
         Returns:
             DataFrame: The output file as a DataFrame.
@@ -382,35 +387,60 @@ class ResultReader:
 
 
 class Model(PySWAPBaseModel, FileMixin, SerializableMixin):
-    """Main class that runs the SWAP model.
+    """Main class that configures, validates, serializes and runs a SWAP model.
 
-    Even though all sections are set to optional, the model will not run if
-    any of the components are missing, except for fixedirrigation, SnowAndFrost,
-    RichardsSettings, HeatFlow and SoluteTransport. These components have
-    default values that will be used if they are not provided.
+    This class is the top-level representation of a SWAP model configuration.
+    It aggregates many Subsection components (metadata, settings, meteorology,
+    crop, soil, hydrology, heat and solute transport, etc.), provides serialized
+    SWAP input text, performs validation prior to execution and helps prepare
+    a "classic" SWAP run (write input files, copy executable).
+
+    Validation behavior:
+        Lightweight model construction is allowed: many subsection attributes are
+            optional at instantiation to permit programmatic building/modification.
+        Validation raises informative ValueError(s) when required components or
+            component-level constraints are missing/invalid.
 
     Attributes:
-        metadata (Subsection): Metadata of the model.
-        version (str): The version of the model (default: "base").
-        generalsettings (Subsection): Simulation settings.
-        richardsettings (Subsection): Richards settings.
-        meteorology (Subsection): Meteorological data.
-        crop (Subsection): Crop data.
-        fixedirrigation (Subsection): Fixed irrigation settings (default: no irrigation).
-        soilmoisture (Subsection): Soil moisture data.
-        surfaceflow (Subsection): Surface flow data.
-        evaporation (Subsection): Evaporation data.
-        soilprofile (Subsection): Soil profile data.
-        snowandfrost (Subsection): Snow and frost data (default: no snow and frost).
-        lateraldrainage (Subsection): Lateral drainage data.
-        bottomboundary (Subsection): Bottom boundary data.
-        heatflow (Subsection): Heat flow data.
-        solutetransport (Subsection): Solute transport data.
+        version (str): Model version identifier (default "base"). Excluded from
+            serialization.
+        metadata (Subsection[Metadata] | None): Model metadata (author, title, etc.).
+        generalsettings (Subsection[GeneralSettings] | None): Simulation and control
+            settings.
+        meteorology (Subsection[Meteorology] | None): Meteorological forcings.
+        crop (Subsection[Crop] | None): Crop specification.
+        soilmoisture (Subsection[SoilMoisture] | None): Initial/management soil
+            moisture settings.
+        surfaceflow (Subsection[SurfaceFlow] | None): Surface routing settings.
+        evaporation (Subsection[Evaporation] | None): Evaporation parameterization.
+        soilprofile (Subsection[SoilProfile] | None): Soil horizon definitions.
+        lateraldrainage (Subsection[Drainage] | None): Lateral drainage settings.
+        bottomboundary (Subsection[BottomBoundary] | None): Bottom boundary condition.
+        richardssettings (Subsection[RichardsSettings] | None): Richards solver options;
+            defaults are provided when omitted.
+        snowandfrost (Subsection[SnowAndFrost] | None): Snow/frost options; default
+            disables snow/frost behavior.
+        fixedirrigation (Subsection[FixedIrrigation] | None): Fixed irrigation input;
+            default disables fixed irrigation.
+        heatflow (Subsection[HeatFlow] | None): Heat flow settings; default disables
+            heat flow calculations.
+        solutetransport (Subsection[SoluteTransport] | None): Solute transport
+            settings; default disables solute transport.
+        _validate_on_run (bool): Internal flag controlling whether model-level
+            validators enforce full validation (set internally during validate()).
+        _extension (str): File extension used when writing serialized model
+            ("swp" by default).
 
     Methods:
-        write_swp: Write the .swp input file.
-        validate: Validate the model.
-        run: Run the model.
+        validate: Perform full model validation in preparation for execution or file
+            generation.
+        write_swp: Serialize the model to SWAP format and write the resulting .swp content to
+            the specified path (file name "swap" is used).
+        get_inputs: Build and return a dictionary representing all input files that would be
+            needed for a classic SWAP run.
+        to_classic_swap: Prepare and write all files required for running SWAP in a user
+            directory.
+        run: Validate the model, prepare files and execute the model.
     """
 
     _validate_on_run: bool = PrivateAttr(default=False)
@@ -421,7 +451,7 @@ class Model(PySWAPBaseModel, FileMixin, SerializableMixin):
     generalsettings: Subsection[GeneralSettings] | None = Field(
         default=None, repr=False
     )
-    richardsettings: Subsection[RichardsSettings] | None = Field(
+    richardssettings: Subsection[RichardsSettings] | None = Field(
         default=RichardsSettings(swkmean=1, swkimpl=0), repr=False
     )
     meteorology: Subsection[Meteorology] | None = Field(default=None, repr=False)
@@ -445,12 +475,7 @@ class Model(PySWAPBaseModel, FileMixin, SerializableMixin):
 
     @property
     def swp(self):
-        """The content of the swp file.
-
-        Serialization of Subsection field type has been set in a way that it
-        will generate SWAP formatted string when `model_string()` is called on
-        the parent class.
-        """
+        """The content of the swp file."""
         return self.model_string()
 
     @model_validator(mode="after")
@@ -494,7 +519,7 @@ class Model(PySWAPBaseModel, FileMixin, SerializableMixin):
 
     @model_validator(mode="after")
     def validate_each_component(self):
-        """Validate, on run, that all required components are present."""
+        """Validate, on run, that each components has valid attributes."""
 
         if not self._validate_on_run:
             return self
@@ -508,11 +533,9 @@ class Model(PySWAPBaseModel, FileMixin, SerializableMixin):
         return self
 
     def validate(self):
-        """Execute the model validation when `run()` is called.
-
-        This method should probably be refactored. It seems to shadow some
-        validation method from Pydantic.
-        """
+        """Execute the model validation when `run()` is called."""
+        # TODO This method should probably be refactored. It seems to shadow some
+        # validation method from Pydantic.
 
         try:
             self._validate_on_run = True

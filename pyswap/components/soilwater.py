@@ -28,8 +28,8 @@ __all__ = [
     "SoilMoisture",
     "SoilProfile",
     "SurfaceFlow",
-    "SOILPROFILE",
     "SOILHYDRFUNC",
+    "SOILPROFILE",
 ]
 
 

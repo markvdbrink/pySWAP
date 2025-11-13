@@ -1,9 +1,3 @@
-"""Model metadata.
-
-Classes:
-    Metadata: Metadata of a SWAP model.
-"""
-
 from pydantic import Field
 
 from pyswap.core.basemodel import PySWAPBaseModel
@@ -14,11 +8,11 @@ from pyswap.utils.mixins import SerializableMixin
 class Metadata(PySWAPBaseModel, SerializableMixin):
     """Metadata of a SWAP model.
 
-    Metadata is intended more as a modelling exercise metadata than a model
-    metadata. You should create one Metadata object at the beginning of your
-    model script and pass it to all Model objects you create in between. It is
-    used to describe model runs if they are stored in a database. Only `project`
+    You should create one Metadata object at the beginning of your
+    model script and pass it to all Model objects you create in after. It is
+    used to describe model runs if they are stored in a database.  It is not intended to serve as complete model data. Only `project`
     is passed to the swap file.
+    metadata.
 
     Attributes:
         author (str): Author of the model.

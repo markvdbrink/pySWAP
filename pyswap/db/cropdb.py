@@ -17,6 +17,12 @@ from pydantic import BaseModel, computed_field
 from pyswap.core.io.io_yaml import load_yaml
 from pyswap.libs import crop_params
 
+__all__ = [
+    "WOFOSTCropDB",
+    "WOFOSTCropFile",
+    "CropVariety",
+]
+
 
 class WOFOSTCropFile(BaseModel):
     """Manage a single WOFOST crop file content.
@@ -150,6 +156,3 @@ class WOFOSTCropDB(BaseModel):
             else self.libdir / f"{crop}.yaml"
         )
         return WOFOSTCropFile(yaml_content=load_yaml(path))
-
-
-__all__ = ["WOFOSTCropDB"]

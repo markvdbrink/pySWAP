@@ -1,8 +1,8 @@
 """Plotting functionality for pySWAP.
 
 Plotting of results depends heavily on the application of the model. Therefore,
-in this module, I only inclduded a few examples of how to plot results for
-specific cases.
+in this module only a few examples of how to plot results for
+specific cases are included.
 
 Modules:
     evapotranspiration: Functions for plotting evapotranspiration data.

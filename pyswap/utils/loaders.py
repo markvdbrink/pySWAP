@@ -46,7 +46,12 @@ from pyswap.utils.old_swap import (
     remove_comments,
 )
 
-__all__ = ["load_swp"]
+__all__ = [
+    "load_swp",
+    "load_dra",
+    "load_crp",
+    "load_bbc",
+]
 
 
 def _parse_ascii_file(path: Path, grass_crp: bool = False):

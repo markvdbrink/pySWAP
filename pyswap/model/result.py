@@ -1,13 +1,7 @@
 # mypy: disable-error-code="no-any-return"
 
 
-"""Capturing model results.
-
-After a model is run, the results are stored in a `Result` object. The object
-stores the log file, output file, and warnings. Output is a dictionary with
-the keys being the file extensions and the values being the file contents. There
-are also computed properties making the most common output formats easily
-accessible.
+"""Capture SWAP simulation results in a `Result` object.
 
 Classes:
     Result: Result of a model run.
@@ -24,20 +18,23 @@ __all__ = ["Result"]
 class Result(BaseModel):
     """Result of a model run.
 
+    Stores the run log, parsed outputs and warnings.
+
     Attributes:
         log (str): The log file of the model run.
-        output (DataFrame): The output file of the model run.
-        warning (List[str]): The warnings of the model run.
+        output (dict): Mapping of output names to their contents (e.g., 'csv', 'csv_tz', 'blc').
+        warning (list[str] | None): List of warnings produced by the run.
 
-    Properties:
-        ascii (dict): The output in ASCII format.
-        csv (DataFrame): The output in CSV format.
-        csv_tz (DataFrame): The output in CSV format with depth.
-        iteration_stats (str): Return the part the iteration statistics from
-            the log.
-        blc_summary (str): The .blc file if it exists.
-        yearly_summary (DataFrame): Yearly sums of all output variables. Will
-            return an error if csv was not included in the output file formats.
+    Methods:
+        ascii: dict of non-CSV outputs.
+        csv: pandas.DataFrame for the 'csv' output.
+        csv_tz: pandas.DataFrame for the 'csv_tz' output (depth-varying variables).
+        iteration_stats: Extracted iteration statistics section from the log.
+        blc_summary: String of the .blc output if present.
+        yearly_summary: Yearly sums of CSV variables as a DataFrame (raises TypeError if CSV missing).
+
+        output (dict): The output file of the model run.
+        warning (List[str]): The warnings of the model run.
     """
 
     log: str | None = Field(default=None, repr=False)
@@ -55,17 +52,20 @@ class Result(BaseModel):
 
     @computed_field(return_type=DataFrame, repr=False)
     def csv(self) -> DataFrame:
-        """Return the output in CSV format."""
+        """Return the output of the csv file as a pandas DataFrame."""
         return self.output.get("csv", None)
 
     @computed_field(return_type=DataFrame, repr=False)
     def csv_tz(self) -> DataFrame:
-        """Return the output in CSV format with depth."""
+        """Return the output of the csv_tz file as a pandas DataFrame.
+
+        The csv_tz file contains simulations of variables varying with depth over time.
+        """
         return self.output.get("csv_tz", None)
 
     @computed_field(return_type=str, repr=False)
     def iteration_stats(self) -> str:
-        """Print the part the iteration statistics from the log."""
+        """Print the iteration statistics from the log."""
         match = re.search(r".*(Iteration statistics\s*.*)$", self.log, re.DOTALL)
         if match:
             return match.group(1)

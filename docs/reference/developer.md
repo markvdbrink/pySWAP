@@ -1,20 +1,26 @@
 # Advanced elements
 
+## pySWAP base model
+
 ::: pyswap.core.basemodel
 
-# Mixins
+## Mixins
 
 ::: pyswap.utils.mixins
 
-# Validation and serialization
+## Validation and serialization
 
 ::: pyswap.core.parsers
 ::: pyswap.core.serializers
 
-# I/O
+## I/O
 
 ::: pyswap.core.io
 
-# CLI
+## Loading old SWAP files
+
+:::pyswap.utils.old_swap
+
+## CLI
 
 ::: pyswap.core.cli

@@ -1,3 +1,9 @@
 # Visualization
 
-::: pyswap.core.plot
+## Evaporatranspiration
+
+::: pyswap.core.plot.evapotranspiration
+
+## Water content
+
+::: pyswap.core.plot.watercontent

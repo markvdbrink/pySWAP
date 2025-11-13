@@ -51,8 +51,8 @@ plugins:
       exclude:
         - tutorials/
   - mkdocs-jupyter:
-      execute: true
-      # execute: false  # For faster doc building when testing
+      # execute: true
+      execute: false # For faster doc building when testing
   - mkdocstrings:
       handlers:
         python:
@@ -64,8 +64,6 @@ plugins:
             show_root_heading: false
             heading_level: 3
             members_order: "__all__" # Not available for non-sponsors
-          options.extra:
-            order: "__all__"
 
 markdown_extensions:
   - admonition
