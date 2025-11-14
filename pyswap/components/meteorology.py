@@ -8,8 +8,8 @@
 This module contains the classes and functions to handle meteorological settings and data for simulations.
 
 Classes:
-    MetFile: Meteorological data for the .met file.
     Meteorology: Meteorological settings of the simulation.
+    MetFile: Meteorological data for the .met file.
 
 Functions:
     load_from_csv: Load meteorological data from a CSV file.
@@ -70,11 +70,11 @@ class MetFile(_PySWAPBaseModel, _FileMixin, _SerializableMixin):
 
     This object is created by functions fetching or loading meteorological data
     from various sources. The data is stored as a pandas.DataFrame, but
-    is formatted with a custom field serializer of the CSVTable field type.
+    is formatted with a custom field serializer of the Table field type.
 
     Attributes:
-        metfil (str): name of the .met file
-        content (CSVTable): meteorological data file
+        metfil (str): Name of the .met file, with extension.
+        content (DAILYMETEODATA | SHORTINTERVALMETEODATA): Meteorological data
     """
 
     # None, because the extension has to be added to metfil
@@ -87,13 +87,9 @@ class MetFile(_PySWAPBaseModel, _FileMixin, _SerializableMixin):
 class Meteorology(_PySWAPBaseModel, _SerializableMixin, _YAMLValidatorMixin):
     """Meteorological settings of the simulation.
 
-    !!! note
-        SWRAIN and SWETSINE should be optional,
-        but Fortran code evaluates its presence anyway. They are set to
-        0 by default.
-
-
     Attributes:
+        metfile (MetFile): MetFile model containing meteorological data to
+            be saved to .met file.
         meteo_location (Location): a point GIS object. If provided, lat
             and alt must not be provided. By default they are overwritten.
         lat (Decimal): latitude of the meteo station [degrees].
@@ -101,9 +97,16 @@ class Meteorology(_PySWAPBaseModel, _SerializableMixin, _YAMLValidatorMixin):
             potential evapotranspiration:
 
             * 0 - Use basic weather data and apply Penman-Monteith equation.
+                **Activates** `alt`, `altw`, `angstroma`, `angstromb`, `swmetdetail`
             * 1 - Use reference evapotranspiration data in combination with
-                crop factors.
+                crop factors. **Activates** `swetsine`, `swrain`
 
+        alt (Decimal): Altitude of the meteo station [m].
+        altw (Decimal): Altitude of the wind [m].
+        angstroma (Decimal): Fraction of extraterrestrial radiation reaching
+            the earth on overcast days.
+        angstromb (Decimal): Additional fraction of extraterrestrial radiation
+            reaching the earth on clear days.
         swdivide (int): Switch for distribution of E and T. Defaults to 0:
 
             * 0 - Based on crop and soil factors.
@@ -113,35 +116,26 @@ class Meteorology(_PySWAPBaseModel, _SerializableMixin, _YAMLValidatorMixin):
             rainfall weather data:
 
             * 0 - Daily data.
-            * 1 - Subdaily data.
+            * 1 - Subdaily data. **Activates** `nmetdetail`
 
-        swrain (int): Switch for use of actual rainfall intensity,
-            defaults to 0:
-
-            * 0 - Use daily rainfall amounts.
-            * 1 - Use daily rainfall amounts + mean intensity.
-            * 2 - Use daily rainfall amounts + duration.
-            * 3 - Use detailed rainfall records (dt < 1 day), as supplied in
-                separate file.
-
+        nmetdetail (int): Number of weather data records each day.
         swetsine (int): Switch, distribute daily Tp and Ep according to
             sinus wave, default to 0:
 
             * 0 - No distribution.
             * 1 - Distribute Tp and Ep according to sinus wave.
 
-        metfile (MetFile): MetFile model containing meteorological data to
-            be saved to .met file.
-        alt (Decimal): Altitude of the meteo station [m].
-        altw (Decimal): Altitude of the wind [m].
-        angstroma (Decimal): Fraction of extraterrestrial radiation reaching
-            the earth on overcast days.
-        angstromb (Decimal): Additional fraction of extraterrestrial radiation
-            reaching the earth on clear days.
-        table_rainflux (Table): rainfall intensity RAINFLUX as function
-            of time TIME.
-        rainfil (str): file name of file with detailed rainfall data.
-        nmetdetail (int): Number of weather data records each day.
+        swrain (int): Switch for use of actual rainfall intensity,
+            defaults to 0:
+
+            * 0 - Use daily rainfall amounts.
+            * 1 - Use daily rainfall amounts + mean intensity. **Activates** `table_rainflux`
+            * 2 - Use daily rainfall amounts + duration.
+            * 3 - Use detailed rainfall records (dt < 1 day), as supplied in
+                separate file. **Activates** `rainfil`
+
+        table_rainflux (RAINFLUX): Table of rainfall intensity.
+        rainfil (str): File name of file with detailed rainfall data. # TODO
 
     Properties:
         met: Returns the string representation of the met file.
@@ -182,12 +176,6 @@ class Meteorology(_PySWAPBaseModel, _SerializableMixin, _YAMLValidatorMixin):
 
     def write_met(self, path: str):
         """Write the .met file.
-
-        !!! note
-
-            in this function the extension is not passed because
-            swp file requires the metfile parameter to be passed already with
-            the extension.
 
         Parameters:
             path (str): Path to the file.
@@ -235,15 +223,16 @@ def metfile_from_knmi(
     """Retrieves the meteorological data from KNMI API using knmi-py and
     enforces SWAP required format.
 
-    !!! note:
+    !!! note
+
         Currently, only daily data can be retrieved.
 
     Parameters:
-        metfil (str): name of the .met file
-        stations (str | list): station number(s) to retrieve data from
-        start (str | dt): start date of the data
-        end (str | dt): end date of the data
-        frequency (Literal['day', 'hour']): frequency of the data (day or hour)
+        metfil (str): Name of the .met file
+        stations (str | list): Station number(s) to retrieve data from
+        start (str | dt): Start date of the data
+        end (str | dt): End date of the data
+        frequency (Literal['day', 'hour']): Frequency of the data (day or hour)
 
     Returns:
         MetFile object.

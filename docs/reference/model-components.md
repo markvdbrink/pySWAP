@@ -34,48 +34,51 @@ all the components that can be used to build a SWAP model.
 ## Crop settings
 
 ::: pyswap.components.crop
-options:
-    members:
-        - Crop
-        - CropFile
-        - CropDevelopmentSettingsFixed
-        - CropDevelopmentSettingsWOFOST
-        - CropDevelopmentSettingsGrass
-        - Interception
-        - OxygenStress
-        - DroughtStress
-        - SaltStress
-        - CompensateRWUStress
-        - Preparation
-        - GrasslandManagement
-        - CO2Correction
-        - AMAXTB
-        - CFTB
-        - CHTB
-        - CROPROTATION
-        - DMGRZTB
-        - DMMOWDELAY
-        - DMMOWTB
-        - DTSMTB
-        - FOTB
-        - FLTB
-        - FRTB
-        - FSTB
-        - GCTB
-        - KYTB
-        - LSDATB
-        - LSDBTB
-        - MRFTB
-        - RDCTB
-        - RDRRTB
-        - RDRSTB
-        - RDTB
-        - RFSETB
-        - RLWTB
-        - SLATB
-        - TMNFTB
-        - TMPFTB
-        - WRTB
+    options:
+        members:
+            - Crop
+            - CropFile
+            - CropDevelopmentSettingsFixed
+            - CropDevelopmentSettingsWOFOST
+            - CropDevelopmentSettingsGrass
+            - Interception
+            - OxygenStress
+            - DroughtStress
+            - SaltStress
+            - CompensateRWUStress
+            - Preparation
+            - GrasslandManagement
+            - CO2Correction
+            - AMAXTB
+            - CFTB
+            - CHTB
+            - CROPROTATION
+            - DMGRZTB
+            - DMMOWDELAY
+            - DMMOWTB
+            - DTSMTB
+            - FOTB
+            - FLTB
+            - FRTB
+            - FSTB
+            - GCTB
+            - KYTB
+            - LOSSGRZTB
+            - LOSSMOWTB
+            - LSDATB
+            - LSDBTB
+            - MRFTB
+            - RDCTB
+            - RDRRTB
+            - RDRSTB
+            - RDTB
+            - RFSETB
+            - RLWTB
+            - SLATB
+            - TMNFTB
+            - TMPFTB
+            - VERNTB
+            - WRTB
 
 ## Irrigation
 

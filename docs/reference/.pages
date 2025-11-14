@@ -1,4 +1,5 @@
 nav:
+    - index.md
     - pyswap-model.md
     - model-components.md
     - visualization.md

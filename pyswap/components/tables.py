@@ -9,37 +9,87 @@ from pyswap.core.basemodel import BaseTableModel
 from pyswap.core.valueranges import DVSRANGE, UNITRANGE, YEARRANGE
 
 __all__ = [
-    "RDTB",
-    "RDCTB",
-    "GCTB",
-    "CFTB",
-    "KYTB",
-    "MRFTB",
-    "WRTB",
-    "CROPROTATION",
-    "DTSMTB",
-    "SLATB",
     "AMAXTB",
-    "TMPFTB",
-    "TMNFTB",
-    "RFSETB",
-    "FRTB",
-    "FLTB",
-    "FSTB",
-    "FOTB",
-    "RDRRTB",
-    "RDRSTB",
-    "DMGRZTB",
-    "LSDATB",
-    "LSDBTB",
-    "RLWTB",
-    "DMMOWTB",
-    "DMMOWDELAY",
-    "SHORTINTERVALMETEODATA",
+    "CFTB",
+    "CHTB",
+    "CO2AMAXTB",
     "CO2EFFTB",
     "CO2TRATB",
-    "CO2AMAXTB",
-]  #  TODO: needs update?
+    "CROPROTATION",
+    "CSEEPARR",
+    "DATET",
+    "DATEHARVEST",
+    "DATOWLTB1",
+    "DATOWLTB2",
+    "DATOWLTB3",
+    "DATOWLTB4",
+    "DATOWLTB5",
+    "DAILYMETEODATA",
+    "DC1TB",
+    "DC2TB",
+    "DETAILEDRAINFALL",
+    "DMGRZTB",
+    "DMMOWDELAY",
+    "DMMOWTB",
+    "DRAINAGELEVELTOPPARAMS",
+    "DRNTB",
+    "DTSMTB",
+    "FOTB",
+    "FLTB",
+    "FRTB",
+    "FSTB",
+    "GCTB",
+    "GWLEVEL",
+    "HAQUIF",
+    "HBOT5",
+    "INIPRESSUREHEAD",
+    "INITSOILTEMP",
+    "INISSOIL",
+    "INTERTB",
+    "IRRIGEVENTS",
+    "KYTB",
+    "LSDATB",
+    "LSDBTB",
+    "LOSSGRZTB",
+    "LOSSMOWTB",
+    "MANSECWATLVL",
+    "MRFTB",
+    "MISC",
+    "MXPONDTB",
+    "OUTDAT",
+    "OUTDATIN",
+    "PRIWATLVL",
+    "QBOT2",
+    "QBOT4",
+    "QDRNTB",
+    "QTAB",
+    "QWEIR",
+    "QWEIRTB",
+    "RAINFLUX",
+    "RDTB",
+    "RDCTB",
+    "RDRRTB",
+    "RDRSTB",
+    "RLWTB",
+    "RFSETB",
+    "SECWATLVL",
+    "SHORTINTERVALMETEODATA",
+    "SLATB",
+    "SOILHYDRFUNC",
+    "SOILPROFILE",
+    "SOILTEXTURES",
+    "TC1TB",
+    "TC2TB",
+    "TC3TB",
+    "TC4TB",
+    "TC7TB",
+    "TC8TB",
+    "TMPFTB",
+    "TMNFTB",
+    "VERNTB",
+    "WRTB",
+]
+
 
 # %% ++++++++++++++++++++++++++++ CROP TABLES ++++++++++++++++++++++++++++
 
@@ -55,6 +105,7 @@ crop_tables = [
     "WRTB",
     "CROPROTATION",
     "DTSMTB",
+    "VERNTB",
     "SLATB",
     "AMAXTB",
     "TMPFTB",
@@ -72,6 +123,8 @@ crop_tables = [
     "RLWTB",
     "DMMOWTB",
     "DMMOWDELAY",
+    "LOSSGRZTB",
+    "LOSSMOWTB",
     "IRRIGEVENTS",
     "TC1TB",
     "TC2TB",
@@ -124,15 +177,17 @@ class RDCTB(BaseTableModel):
 
 
 class GCTB(BaseTableModel):
-    """Leaf Area Index [0..12 (m2 leaf)/(m2 soil), R], as function of dev. stage [0..2 -, R]
+    """Leaf Area Index or Soil Cover Fraction as function of development stage.
 
     Attributes:
-        DVS (Series[float]): Development stage of the crop.
-        LAI (Series[float]): Leaf Area Index of the crop.
+        DVS (Series[float]): Development stage of the crop [0..2, -].
+        LAI (Series[float]): Leaf Area Index of the crop [0..12, (m2 leaf)/(m2 soil)]
+        SCF (Series[float]): Soil Cover Fraction [0..1, (m2 cover)/(m2 soil)]
     """
 
     DVS: Series[float] = pa.Field(**DVSRANGE)
     LAI: Series[float] = pa.Field(ge=0.0, le=12.0)
+    SCF: Series[float] = pa.Field(ge=0.0, le=1.0)
 
 
 class CFTB(BaseTableModel):
@@ -244,15 +299,27 @@ class CROPROTATION(BaseTableModel):
 
 # WOFOST-specific tables
 class DTSMTB(BaseTableModel):
-    """increase in temperature sum [0..60 oC, R] as function of daily average temperature [0..100 oC, R]
+    """Increase in temperature sum as function of daily average temperature.
 
     Attributes:
-        TAV (Series[float]): Daily average temperature.
-        DTSM (Series[float]): Increase in temperature sum.
+        TAV (Series[float]): Daily average temperature [0..100, °C].
+        DTSM (Series[float]): Increase in temperature sum [0..60, °C].
     """
 
     TAV: Series[float] = pa.Field(ge=0.0, le=100.0)
     DTSM: Series[float] = pa.Field(ge=0.0, le=60.0)
+
+
+class VERNTB(BaseTableModel):
+    """Rate of vernalisation as function of average air temperature
+
+    Attributes:
+        TAV (Series[float]): Daily average temperature [°C].
+        ROV (Series[float]): Rate of vernalisation [d].
+    """
+
+    TAV: Series[float]
+    ROV: Series[float]
 
 
 class SLATB(BaseTableModel):
@@ -478,6 +545,30 @@ class DMMOWDELAY(BaseTableModel):
 
     DMMOWDELAY: Series[float] = pa.Field(ge=0.0, le=1.0e6)
     DAYDELAY: Series[int] = pa.Field(**YEARRANGE)
+
+
+class LOSSGRZTB(BaseTableModel):
+    """Relation between pressure head and fraction of dry matter losses during grazing.
+
+    Attributes:
+        HGRZ (Series[float]): Pressure head [-1000..0, cm]
+        HLOSSGRZ (Series[float]): Fraction of dry matter loss [0.0..1.0, -]
+    """
+
+    HGRZ: Series[float] = pa.Field(ge=1000, le=0)
+    HLOSSGRZ: Series[float] = pa.Field(**UNITRANGE)
+
+
+class LOSSMOWTB(BaseTableModel):
+    """Relation between pressure head and fraction of dry matter losses during mowing.
+
+    Attributes:
+        HMOW (Series[float]): Pressure head [-1000..0, cm]
+        HLOSSMOW (Series[float]): Fraction of dry matter loss [0.0..1.0, -]
+    """
+
+    HMOW: Series[float] = pa.Field(ge=1000, le=0)
+    HLOSSMOW: Series[float] = pa.Field(**UNITRANGE)
 
 
 class IRRIGEVENTS(BaseTableModel):
