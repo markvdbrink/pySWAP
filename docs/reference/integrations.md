@@ -2,14 +2,7 @@
 
 ## WOFOST crop database
 
-<!-- prettier-ignore-start -->
 ::: pyswap.db.cropdb
-    options:
-        members:
-            - WOFOSTCropDB
-            - WOFOSTCropFile
-            - CropVariety
-<!-- prettier-ignore-end -->
 
 ## HDF5
 
@@ -18,3 +11,7 @@
 ## Load old SWAP files
 
 ::: pyswap.utils.loaders
+
+## Weather data KNMI
+
+Meteorological data of the Royal Netherlands Meteorological Institute (KNMI) can be loaded in using the function `metfile_from_knmi` in the [Meteorology section](model-components.md#meteorological-settings)
