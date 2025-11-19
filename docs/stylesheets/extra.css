@@ -33,9 +33,3 @@
   -webkit-mask-image: var(--md-admonition-icon--filetemplate);
   mask-image: var(--md-admonition-icon--filetemplate);
 }
-
-.md-sidebar__scrollwrap,
-.md-sidebar--secondary {
-  height: 100vh;
-  overflow-y: auto;
-}

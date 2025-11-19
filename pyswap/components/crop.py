@@ -4,10 +4,10 @@
 """Crop settings and crop files for SWAP model.
 
 Similar to the .dra or .swp files, the .crp file is a configuration file for the SWAP model.
-The classes in this module represent distincs sections of the .crp file. The main class is the
+The classes in this module represent distinct sections of the .crp file. The main class is the
 `CropFile` class which holds the settings for the crop simulation.
 
-SWAP has three modes for crop simulations which users define in the CROPROTATION _table in the .swp file:
+SWAP has three modes for crop simulations which users define in the CROPROTATION table in the .swp file:
 
     * 1 - simple crop settings - use CropDevelopmentSettingsFixed
     * 2 - detailed, WOFOST general settings - use CropDevelopmentSettingsWOFOST
@@ -17,6 +17,7 @@ For each choice, the .crp file will look different. Therefore, multiple classes
  are defined in this module to deal with those different settings.
 
 Classes:
+    Crop: Class for the crop section in the .swp file.
     CropFile: Class for the .crp file.
     Preparation: Class for the preparation settings.
     CropDevelopmentSettingsFixed: Class for the fixed crop development settings.
@@ -28,6 +29,7 @@ Classes:
     CompensateRWUStress: Class for the compensate root water uptake stress settings.
     Interception: Class for the interception settings.
     CO2Correction: Class for the CO2 correction settings.
+    GrasslandManagement: Class for the grassland settings.
 """
 
 from typing import (
@@ -146,6 +148,8 @@ class _CropDevelopmentSettings(
 ):
     """Crop development settings.
 
+    Private class. Documentation of variables is given in children classes.
+
     !!! note:
 
         CropDevelopmentSettings is a base class for the different crop
@@ -154,45 +158,6 @@ class _CropDevelopmentSettings(
         between the wofost and swap templates, the alias parameter is used to
         rename the parameters in serialization to SWAP compatible .crp file.
         Currently it applies to TSUM1 and TSUM2.
-
-    Attributes:
-        wofost_variety (CropVariety): Crop variety settings.
-        tsumea (float): Temperature sum from emergence to anthesis [0..1e4 degrees C].
-        tsumam (float): Temperature sum from anthesis to maturity [1..1e4 degrees C].
-        tbase (float): Start value of temperature sum [-10..30 degrees C].
-        kdif (float): Extinction coefficient for diffuse visible light [0..2 -].
-        kdir (float): Extinction coefficient for direct visible light [0..2 -].
-        swcf (Literal[1, 2]): Use crop factor or crop height for simulation of evapotranspiration
-
-            * 1 - Crop factor, when using ETref from meteo input file (`swetr=1`)
-                or Penman-Monteith. **Activates:** `cftb`
-            * 2 - Crop height, when using Penman-Monteith with actual crop height,
-                albedo and canopy resistance. **Activates:** `chtb`, `albedo`,
-                `rsc`, `rsw`.
-
-        cftb (CFTB): Table with crop factors as a function of development stage.
-        chtb (CHTB): Table with crop height as a function of development stage.
-        albedo (float): Crop reflection coefficient [0..1.0, -].
-        rsc (float): Minimum canopy resistance [0..1e6, s/m].
-        rsw (float): Canopy resistance of intercepted water [0..1e6, s/m].
-        rdctb (RDCTB): Table with root density as function of relative rooting depth.
-        swrd (Literal1, 2, 3]]): Switch development of root growth.
-
-            * 1 - Root growth depends on development stage. **Activates:** `rdtb`
-            * 2 - Root growth depends on maximum daily increase. **Activates:** `rdi`, `rri`, `rdc`, `swdmi2rd`
-            * 3 - Root growth depends on available root biomass. **Activates:**  `rlwtb`, `wrtmax`
-
-        rdtb (RDTB): Table with rooting depth as a function of development stage.
-        rdi (float): Initial rooting depth [0..1000, cm].
-        rri (float): Maximum daily increase in rooting depth [0..100, cm].
-        rdc (float): Maximum rooting depth of particular crop [0..1000, cm].
-        swdmi2rd (Literal0, 1]]): Switch for calculation rooting depth.
-
-            * 0 - Rooting depth increase is related to availability assimilates for roots.
-            * 1 - Rooting depth increase is related to relative dry matter increase.
-
-        rlwtb (RLWTB): Table with rooting depth as function of root weight.
-        wrtmax (float): Maximum root weight [0..1e5, kg DM/ha].
     """
 
     # add in model config that additional attributes are allowed
@@ -233,34 +198,36 @@ class CropDevelopmentSettingsWOFOST(_CropDevelopmentSettings):
         swcf (Literal[1, 2]): Use crop factor or crop height for simulation of evapotranspiration
 
             * 1 - Crop factor, when using ETref from meteo input file (`swetr=1`)
-                or Penman-Monteith. **Activates:** `cftb`
+                or Penman-Monteith.
+                    **Activates**: [`cftb`]
             * 2 - Crop height, when using Penman-Monteith with actual crop height,
-                albedo and canopy resistance. **Activates:** `chtb`, `albedo`,
-                `rsc`, `rsw`.
+                albedo and canopy resistance.
+                    **Activates**: [`chtb`, `albedo`, `rsc`, `rsw`]
 
-        cftb (CFTB): Table with crop factors as a function of development stage.
-        chtb (CHTB): Table with crop height as a function of development stage.
-        albedo (float): Crop reflection coefficient [0..1.0, -].
-        rsc (float): Minimum canopy resistance [0..1e6, s/m].
-        rsw (float): Canopy resistance of intercepted water [0..1e6, s/m].
+        cftb (Optional[CFTB]): Table with crop factors as a function of development stage.
+        chtb (Optional[CHTB]): Table with crop height as a function of development stage.
+        albedo (Optional[float]): Crop reflection coefficient [0..1.0, -].
+        rsc (Optional[float]): Minimum canopy resistance [0..1e6, s/m].
+        rsw (Optional[float]): Canopy resistance of intercepted water [0..1e6, s/m].
         idsl (Literal[0, 1, 2]): Switch for crop development.
 
-            * 0 - Depends on temperature. **Activates:** `tsumea`, `tsumam`, `dtsmtb`
-            * 1 - Depends on temperature and daylength. **Activates:** `tsumea`,
-                `tsumam`, `dtsmtb`, `dlo`, `dlc`
+            * 0 - Depends on temperature.
+                    **Activates**: [`tsumea`, `tsumam`, `dtsmtb`]
+            * 1 - Depends on temperature and daylength.
+                    **Activates**: [`tsumea`, `tsumam`, `dtsmtb`, `dlo`, `dlc`]
             * 2 - Depends on temperature, daylength and vernalisation factor.
-                **Activates:** `tsumea`, `tsumam`, `dtsmtb`, `dlo`, `dlc`,
-                `vernsat`, `vernbase`, `verndvs`, `verntb`
+                    **Activates**: [`tsumea`, `tsumam`, `dtsmtb`, `dlo`, `dlc`,
+                        `vernsat`, `vernbase`, `verndvs`, `verntb`]
 
-        tsumea (float): Temperature sum from emergence to anthesis [0..1e4, °C].
-        tsumam (float): Temperature sum from anthesis to maturity [1..1e4, °C].
-        dtsmtb (DTSMTB): Table with increase in temperature sum as function of daily average temperature.
-        dlo (float): Optimum day length for crop development [0..24, hr].
-        dlc (float): Minimum day length [0..24, hr].
-        vernsat (float): Saturated vernalisation requirement [0..100, days].
-        vernbase (float): Base vernalisation requirement [0..100, days].
-        verndvs (float): Critical development stage after which the effect of vernalisation is halted [0.0..0.3, -].
-        verntb (VERNTB): Table with rate of vernalisation as function of average air temperature.
+        tsumea (Optional[float]): Temperature sum from emergence to anthesis [0..1e4, °C].
+        tsumam (Optional[float]): Temperature sum from anthesis to maturity [1..1e4, °C].
+        dtsmtb (Optional[DTSMTB]): Table with increase in temperature sum as function of daily average temperature.
+        dlo (Optional[float]): Optimum day length for crop development [0..24, hr].
+        dlc (Optional[float]): Minimum day length [0..24, hr].
+        vernsat (Optional[float]): Saturated vernalisation requirement [0..100, days].
+        vernbase (Optional[float]): Base vernalisation requirement [0..100, days].
+        verndvs (Optional[float]): Critical development stage after which the effect of vernalisation is halted [0.0..0.3, -].
+        verntb (Optional[VERNTB]): Table with rate of vernalisation as function of average air temperature.
         tdwi (float): Initial total crop dry weight [0..10000, kg/ha].
         laiem (float): Leaf area index at emergence [0..10, m2/m2].
         rgrlai (float): Maximum relative increase in LAI [0..1, m2/m2/d].
@@ -297,24 +264,32 @@ class CropDevelopmentSettingsWOFOST(_CropDevelopmentSettings):
         perdl (float): Maximum relative death rate of leaves due to water stress [0..3, /d].
         rdrrtb (RDRRTB): Table with relative death rates of roots as function of development stage.
         rdrstb (RDRSTB): Table with relative death rates of stems as function of development stage.
+        swrdc (Literal[0, 1]): Switch for calculation of relative root density
+
+            * 0: Root density is not modified
+            * 1: Root density is modified based on root water extraction (default)
+
         rdctb (RDCTB): Table with root density as function of relative rooting depth.
-        swrd (Literal1, 2, 3]]): Switch development of root growth.
+        swrd (Literal[1, 2, 3]): Switch development of root growth.
 
-            * 1 - Root growth depends on development stage. **Activates:** `rdtb`
-            * 2 - Root growth depends on maximum daily increase. **Activates:** `rdi`, `rri`, `rdc`, `swdmi2rd`
-            * 3 - Root growth depends on available root biomass. **Activates:**  `rlwtb`, `wrtmax`
+            * 1 - Root growth depends on development stage.
+                    **Activates**: [`rdtb`]
+            * 2 - Root growth depends on maximum daily increase.
+                    **Activates**: [`rdi`, `rri`, `rdc`, `swdmi2rd`]
+            * 3 - Root growth depends on available root biomass.
+                    **Activates**: [`rlwtb`, `wrtmax`]
 
-        rdtb (RDTB): Table with rooting depth as a function of development stage.
-        rdi (float): Initial rooting depth [0..1000, cm].
-        rri (float): Maximum daily increase in rooting depth [0..100, cm].
-        rdc (float): Maximum rooting depth of particular crop [0..1000, cm].
-        swdmi2rd (Literal0, 1]]): Switch for calculation rooting depth.
+        rdtb (Optional[RDTB]): Table with rooting depth as a function of development stage.
+        rdi (Optional[float]): Initial rooting depth [0..1000, cm].
+        rri (Optional[float]): Maximum daily increase in rooting depth [0..100, cm].
+        rdc (Optional[float]): Maximum rooting depth of particular crop [0..1000, cm].
+        swdmi2rd (Optional[Literal[0, 1]]): Switch for calculation rooting depth.
 
             * 0 - Rooting depth increase is related to availability assimilates for roots.
             * 1 - Rooting depth increase is related to relative dry matter increase.
 
-        rlwtb (RLWTB): Table with rooting depth as function of root weight.
-        wrtmax (float): Maximum root weight [0..1e5, kg DM/ha].
+        rlwtb (Optional[RLWTB]): Table with rooting depth as function of root weight.
+        wrtmax (Optional[float]): Maximum root weight [0..1e5, kg DM/ha].
     """
 
     idsl: _Literal[0, 1, 2] | None = None
@@ -361,52 +336,65 @@ class CropDevelopmentSettingsFixed(_CropDevelopmentSettings):
     Attributes:
         idev (Literal[1, 2]): Duration of crop growing period
 
-            * 1 - Duration is fixed. **Activates:** `lcc`
-            * 2 - Duration is variable. **Activates:** `tsumea`, `tsumam`, `tbase`
+            * 1 - Duration is fixed.
+                    **Activates**: [`lcc`]
+            * 2 - Duration is variable.
+                    **Activates**: [`tsumea`, `tsumam`, `tbase`]
 
-        lcc (int): Duration of the crop growing period [1..366, day]
-        tsumea (float): Temperature sum from emergence to anthesis [0..1e4 degrees C].
-        tsumam (float): Temperature sum from anthesis to maturity [1..1e4 degrees C].
-        tbase (float): Start value of temperature sum [-10..30 degrees C].
+        lcc (Optional[int]): Duration of the crop growing period [1..366, day]
+        tsumea (Optional[float]): Temperature sum from emergence to anthesis [0..1e4 degrees C].
+        tsumam (Optional[float]): Temperature sum from anthesis to maturity [1..1e4 degrees C].
+        tbase (Optional[float]): Start value of temperature sum [-10..30 degrees C].
         kdif (float): Extinction coefficient for diffuse visible light [0..2 -].
         kdir (float): Extinction coefficient for direct visible light [0..2 -].
         swgc (Literal[1, 2]): Choose between Leaf Area Index or Soil Cover Fraction
 
-            * 1 - Leaf Area Index. **Activates:** `gctb`
-            * 2 - Soil Cover Fraction. **Activates:** `gctb`
+            * 1 - Leaf Area Index.
+                    **Activates**: [`gctb`]
+            * 2 - Soil Cover Fraction.
+                    **Activates**: [`gctb`]
 
-        gctb (GCTB): Soil Cover Fraction or Leaf Area Index as a function of development stage
+        gctb (Optional[GCTB]): Soil Cover Fraction or Leaf Area Index as a function of development stage
         swcf (Literal[1, 2]): Use crop factor or crop height for simulation of evapotranspiration
 
             * 1 - Crop factor, when using ETref from meteo input file (`swetr=1`)
-                or Penman-Monteith. **Activates:** `cftb`
+                or Penman-Monteith.
+                    **Activates**: [`cftb`]
             * 2 - Crop height, when using Penman-Monteith with actual crop height,
-                albedo and canopy resistance. **Activates:** `chtb`, `albedo`,
-                `rsc`, `rsw`.
+                albedo and canopy resistance.
+                    **Activates**: [`chtb`, `albedo`, `rsc`, `rsw`]
 
-        cftb (CFTB): Table with crop factors as a function of development stage.
-        chtb (CHTB): Table with crop height as a function of development stage.
-        albedo (float): Crop reflection coefficient [0..1.0, -].
-        rsc (float): Minimum canopy resistance [0..1e6, s/m].
-        rsw (float): Canopy resistance of intercepted water [0..1e6, s/m].
+        cftb (Optional[CFTB]): Table with crop factors as a function of development stage.
+        chtb (Optional[CHTB]): Table with crop height as a function of development stage.
+        albedo (Optional[float): Crop reflection coefficient [0..1.0, -].
+        rsc (Optional[float]): Minimum canopy resistance [0..1e6, s/m].
+        rsw (Optional[float]): Canopy resistance of intercepted water [0..1e6, s/m].
         rdctb (RDCTB): Table with root density as function of relative rooting depth.
-        swrd (Literal1, 2, 3]]): Switch development of root growth.
+        swrdc (Literal[0, 1]): Switch for calculation of relative root density
 
-            * 1 - Root growth depends on development stage. **Activates:** `rdtb`
-            * 2 - Root growth depends on maximum daily increase. **Activates:** `rdi`, `rri`, `rdc`, `swdmi2rd`
-            * 3 - Root growth depends on available root biomass. **Activates:**  `rlwtb`, `wrtmax`
+            * 0: Root density is not modified
+            * 1: Root density is modified based on root water extraction (default)
 
-        rdtb (RDTB): Table with rooting depth as a function of development stage.
-        rdi (float): Initial rooting depth [0..1000, cm].
-        rri (float): Maximum daily increase in rooting depth [0..100, cm].
-        rdc (float): Maximum rooting depth of particular crop [0..1000, cm].
-        swdmi2rd (Literal0, 1]]): Switch for calculation rooting depth.
+        swrd (Literal[1, 2, 3]): Switch development of root growth.
+
+            * 1 - Root growth depends on development stage.
+                    **Activates**: [`rdtb`]
+            * 2 - Root growth depends on maximum daily increase.
+                    **Activates**: [`rdi`, `rri`, `rdc`, `swdmi2rd`]
+            * 3 - Root growth depends on available root biomass.
+                    **Activates**: [`rlwtb`, `wrtmax`]
+
+        rdtb (Optional[RDTB]): Table with rooting depth as a function of development stage.
+        rdi (Optional[float]): Initial rooting depth [0..1000, cm].
+        rri (Optional[float]): Maximum daily increase in rooting depth [0..100, cm].
+        rdc (Optional[float]): Maximum rooting depth of particular crop [0..1000, cm].
+        swdmi2rd (Optional[Literal[0, 1]]): Switch for calculation rooting depth.
 
             * 0 - Rooting depth increase is related to availability assimilates for roots.
             * 1 - Rooting depth increase is related to relative dry matter increase.
 
-        rlwtb (RLWTB): Table with rooting depth as function of root weight.
-        wrtmax (float): Maximum root weight [0..1e5, kg DM/ha].
+        rlwtb (Optional[RLWTB]): Table with rooting depth as function of root weight.
+        wrtmax (Optional[float]): Maximum root weight [0..1e5, kg DM/ha].
         kytb (KYTB): Table with yield response factor as function of development stage.
     """
 
@@ -424,16 +412,17 @@ class CropDevelopmentSettingsGrass(CropDevelopmentSettingsWOFOST):
         swcf (Literal[1, 2]): Use crop factor or crop height for simulation of evapotranspiration
 
             * 1 - Crop factor, when using ETref from meteo input file (`swetr=1`)
-                or Penman-Monteith. **Activates:** `cftb`
+                or Penman-Monteith.
+                    **Activates**: [`cftb`]
             * 2 - Crop height, when using Penman-Monteith with actual crop height,
-                albedo and canopy resistance. **Activates:** `chtb`, `albedo`,
-                `rsc`, `rsw`.
+                albedo and canopy resistance.
+                    **Activates**: [`chtb`, `albedo`, `rsc`, `rsw`]
 
-        cftb (CFTB): Table with crop factors as a function of day number.
-        chtb (CHTB): Table with crop height as a function of day number.
-        albedo (float): Crop reflection coefficient [0..1.0, -].
-        rsc (float): Minimum canopy resistance [0..1e6, s/m].
-        rsw (float): Canopy resistance of intercepted water [0..1e6, s/m].
+        cftb (Optional[CFTB]): Table with crop factors as a function of day number.
+        chtb (Optional[CHTB]): Table with crop height as a function of day number.
+        albedo (Optional[float]): Crop reflection coefficient [0..1.0, -].
+        rsc (Optional[float]): Minimum canopy resistance [0..1e6, s/m].
+        rsw (Optional[float]): Canopy resistance of intercepted water [0..1e6, s/m].
         tdwi (float): Initial total crop dry weight [0..10000, kg/ha].
         laiem (float): Leaf area index at emergence [0..10, m2/m2].
         rgrlai (float): Maximum relative increase in LAI [0..1, m2/m2/d].
@@ -442,11 +431,11 @@ class CropDevelopmentSettingsGrass(CropDevelopmentSettingsWOFOST):
             * 0 - No delay of start grass growth
             * 1 - Start of grass growth based on sum air temperatures > 200 degree C
             * 2 - Start of grass growth based on soil temperature at particular depth.
-                **Activates:** `tsumtemp`, `tsumdepth`, `tsumtime`
+                    **Activates**: [`tsumtemp`, `tsumdepth`, `tsumtime`]
 
-        tsumtemp (float): Specific stem area [0..1, ha/kg]
-        tsumdepth (float): Life span under leaves under optimum conditions [0..366, d]
-        tsumtime (float): Lower threshold temperature for ageing of leaves [-10..30. °C]
+        tsumtemp (Optional[float]): Specific stem area [0..1, ha/kg]
+        tsumdepth (Optional[float]): Life span under leaves under optimum conditions [0..366, d]
+        tsumtime (Optional[float]): Lower threshold temperature for ageing of leaves [-10..30. °C]
         ssa (float): Specific stem area [0..1, ha/kg].
         span (float): Life span under leaves under optimum conditions [0..366, d].
         slatb (SLATB): Table with specific leaf area as function of crop development stage.
@@ -476,23 +465,31 @@ class CropDevelopmentSettingsGrass(CropDevelopmentSettingsWOFOST):
         rdrrtb (RDRRTB): Table with relative death rates of roots as function of development stage.
         rdrstb (RDRSTB): Table with relative death rates of stems as function of development stage.
         rdctb (RDCTB): Table with root density as function of relative rooting depth.
-        swrd (Literal1, 2, 3]]): Switch development of root growth.
+        swrdc (Literal[0, 1]): Switch for calculation of relative root density
 
-            * 1 - Root growth depends on development stage. **Activates:** `rdtb`
-            * 2 - Root growth depends on maximum daily increase. **Activates:** `rdi`, `rri`, `rdc`, `swdmi2rd`
-            * 3 - Root growth depends on available root biomass. **Activates:**  `rlwtb`, `wrtmax`
+            * 0: Root density is not modified
+            * 1: Root density is modified based on root water extraction (default)
 
-        rdtb (RDTB): Table with rooting depth as a function of development stage.
-        rdi (float): Initial rooting depth [0..1000, cm].
-        rri (float): Maximum daily increase in rooting depth [0..100, cm].
-        rdc (float): Maximum rooting depth of particular crop [0..1000, cm].
-        swdmi2rd (Literal0, 1]]): Switch for calculation rooting depth.
+        swrd (Literal[1, 2, 3]): Switch development of root growth.
+
+            * 1 - Root growth depends on development stage.
+                    **Activates**: [`rdtb`]
+            * 2 - Root growth depends on maximum daily increase.
+                    **Activates**: [`rdi`, `rri`, `rdc`, `swdmi2rd`]
+            * 3 - Root growth depends on available root biomass.
+                    **Activates**: [`rlwtb`, `wrtmax`]
+
+        rdtb (Optional[RDTB]): Table with rooting depth as a function of development stage.
+        rdi (Optional[float]): Initial rooting depth [0..1000, cm].
+        rri (Optional[float]): Maximum daily increase in rooting depth [0..100, cm].
+        rdc (Optional[float]): Maximum rooting depth of particular crop [0..1000, cm].
+        swdmi2rd (Optional[Literal[0, 1]]): Switch for calculation rooting depth.
 
             * 0 - Rooting depth increase is related to availability assimilates for roots.
             * 1 - Rooting depth increase is related to relative dry matter increase.
 
-        rlwtb (RLWTB): Table with rooting depth as function of root weight.
-        wrtmax (float): Maximum root weight [0..1e5, kg DM/ha].
+        rlwtb (Optional[RLWTB]): Table with rooting depth as function of root weight.
+        wrtmax (Optional[float]): Maximum root weight [0..1e5, kg DM/ha].
     """
 
     swtsum: _Literal[0, 1, 2] | None = None
@@ -509,47 +506,49 @@ class OxygenStress(_PySWAPBaseModel, _SerializableMixin, _YAMLValidatorMixin):
 
             * 0 - No oxygen stress.
             * 1 - Oxygen stress according to Feddes et al. (1978).
-                **Activates:** `hlim1`, `hlim2u`, `hlim2l`
+                    **Activates**: [`hlim1`, `hlim2u`, `hlim2l`]
             * 2 - Oxygen stress according to Bartholomeus et al. (2008)
-                **Activates:** `swoxygentype`
+                    **Activates**: [`swoxygentype`]
 
-        hlim1 (float): No water extraction at higher pressure heads [-100..100, cm]
-        hlim2u (float): H below which optimum water extraction starts for top layer [-1000..100, cm]
-        hlim2l (float): H below which optimum water extraction starts for sub layer [-1000..100, cm]
-        swoxygentype (Literal1, 2]]): Switch for using physical processes or
+        hlim1 (Optional[float]): No water extraction at higher pressure heads [-100..100, cm]
+        hlim2u (Optional[float]): H below which optimum water extraction starts for top layer [-1000..100, cm]
+        hlim2l (Optional[float]): H below which optimum water extraction starts for sub layer [-1000..100, cm]
+        swoxygentype (Optional[Literal[1, 2]]): Switch for using physical processes or
             reproduction functions to calculate oxygen stress:
 
-            * 1 - Physical processes. **Activates:** `q10_microbial`,
-                `specific_resp_humus`, `srl`, `swrootradius`
+            * 1 - Physical processes.
+                    **Activates**: [`q10_microbial`, `specific_resp_humus`, `srl`, `swrootradius`]
             * 2 - reproduction functions
 
-        q10_microbial (float): Relative increase in microbial respiration at
+        q10_microbial (Optional[float]): Relative increase in microbial respiration at
             temperature increase of 10 °C [1.0..4.0, -]
-        specific_resp_humus (float): Respiration rate of humus at 25 °C [0.0..1.0, kg O2 °C / (kg d)]
-        srl (float): Specific root length [0..1e10, m/kg]
-        swrootradius (Literal1, 2]]): Switch for calculation of root radius:
+        specific_resp_humus (Optional[float]): Respiration rate of humus at 25 °C [0.0..1.0, kg O2 °C / (kg d)]
+        srl (Optional[float]): Specific root length [0..1e10, m/kg]
+        swrootradius (Optional[Literal[1, 2]]): Switch for calculation of root radius:
 
-            * 1 - Calculate root radius. **Activates:** `dry_mat_cont_roots`,
-                `air_filled_root_por`, `spec_weight_root_tissue`, `var_a`
-            * 2 - Root radius given in an input file. **Activates:** `root_radiuso2`
+            * 1 - Calculate root radius.
+                    **Activates**: [`dry_mat_cont_roots`, `air_filled_root_por`, `spec_weight_root_tissue`, `var_a`]
+            * 2 - Root radius given in an input file.
+                    **Activates**: [`root_radiuso2`]
 
-        dry_mat_cont_roots (float): Dry matter content of roots [0..1, -]
-        air_filled_root_por (float): Air filled root porosity [0..1, -]
-        spec_weight_root_tissue (float): Specific weight of non-airfilled root tissue [0.0..1e5, kg/m3]
-        var_a (float): Variance of root radius [0.0..1.0, -]
-        root_radiuso2 (float): Root radius [1e-6..0.1, cm]
+        dry_mat_cont_roots (Optional[float]): Dry matter content of roots [0..1, -]
+        air_filled_root_por (Optional[float]): Air filled root porosity [0..1, -]
+        spec_weight_root_tissue (Optional[float]): Specific weight of non-airfilled root tissue [0.0..1e5, kg/m3]
+        var_a (Optional[float]): Variance of root radius [0.0..1.0, -]
+        root_radiuso2 (Optional[float]): Root radius [1e-6..0.1, cm]
         swwrtnonox (Literal[0, 1]): Switch for checking aerobic conditions in
             root zone to stop root(zone) development:
 
             * 1 - Don't check for aerobic conditions.
-            * 2 - Check for aerobic conditions. **Activates:** `aeratecrit`
+            * 2 - Check for aerobic conditions.
+                    **Activates**: [`aeratecrit`]
 
-        aeratecrit (float): Threshold to stop root extension in case of oxygenstress; 0.0 maximum oxygen stress
-        q10_root (float): Relative increase in root respiration at temperature increase of 10 °C [DEPRECATED]
-        f_senes (float): Reduction factor for senescence, used for maintenance respiration [DEPRECATED]
-        c_mroot (float): Maintenance coefficient of root [DEPRECATED]
-        mrftb (MRFTB): Ratio root total respiration / maintenance respiration as a function of development stage [DEPRECATED]
-        wrtb (WRTB): List dry weight of roots at soil surface as a function of development stage [DEPRECATED]
+        aeratecrit (Optional[float]): Threshold to stop root extension in case of oxygenstress; 0.0 maximum oxygen stress
+        q10_root (Optional[float]): Relative increase in root respiration at temperature increase of 10 °C [DEPRECATED]
+        f_senes (Optional[float]): Reduction factor for senescence, used for maintenance respiration [DEPRECATED]
+        c_mroot (Optional[float]): Maintenance coefficient of root [DEPRECATED]
+        mrftb (Optional[MRFTB]): Ratio root total respiration / maintenance respiration as a function of development stage [DEPRECATED]
+        wrtb (Optional[WRTB]): List dry weight of roots at soil surface as a function of development stage [DEPRECATED]
 
     """
 
@@ -588,31 +587,31 @@ class DroughtStress(_PySWAPBaseModel, _SerializableMixin, _YAMLValidatorMixin):
         swdrought (Literal[1, 2]): Switch for drought stress
 
             * 1 - Drought stress according to Feddes et al. (1978).
-                **Activates:** `hlim3h`, `hlim3l`, `hlim4`, `adcrh`, `adcrl`
+                    **Activates**: [`hlim3h`, `hlim3l`, `hlim4`, `adcrh`, `adcrl`]
             * 2 - rought stress according to De Jong van Lier et al. (2008)
-                **Activates:** `wiltpoint`, `kstem`, `rxylem`, `rootradius`, `kroot`,
-                `rootcoefa`, `swhydrlift`, `rooteff`, `stephr`, `criterhr`, `taccur`
+                    **Activates**: [`wiltpoint`, `kstem`, `rxylem`, `rootradius`, `kroot`,
+                        `rootcoefa`, `swhydrlift`, `rooteff`, `stephr`, `criterhr`, `taccur`]
 
-        hlim3h (float): Pressure head below which water uptake reduction starts at high Tpot [-1e4..100, cm]
-        hlim3l (float): Pressure head below which water uptake reduction starts at low Tpot [-1e4..100, cm]
-        hlim4 (float): No water extraction at lower soil water pressure heads [-2e4..100, cm]
-        adcrh (float): Level of high atmospheric demand, corresponding to `hlim3h` [0..5, cm/d]
-        adcrl (float): Level of low atmospheric demand, corresponding to `hlim3l` [0..5, cm/d]
-        wiltpoint (float): Minimum pressure head in leaves [-1e8..1e2, cm]
-        kstem (float): Hydraulic conductance between leaf and root xylem [1e-10..10, /d]
-        rxylem (float): Xylem radius [1e-4..1, cm]
-        rootradius (float): Root radius [1e-4..1, cm]
-        kroot (float): Radial hydraulic conductivity of root tissue [1e-10..1e10, cm/d]
-        rootcoefa (float): Defines relative distance between roots at which mean soil water content occurs [0..1, -]
-        swhydrlift (Literal0, 1]]): Switch for possibility hydraulic lift in root system:
+        hlim3h (Optional[float]): Pressure head below which water uptake reduction starts at high Tpot [-1e4..100, cm]
+        hlim3l (Optional[float]): Pressure head below which water uptake reduction starts at low Tpot [-1e4..100, cm]
+        hlim4 (Optional[float]): No water extraction at lower soil water pressure heads [-2e4..100, cm]
+        adcrh (Optional[float]): Level of high atmospheric demand, corresponding to `hlim3h` [0..5, cm/d]
+        adcrl (Optional[float]): Level of low atmospheric demand, corresponding to `hlim3l` [0..5, cm/d]
+        wiltpoint (Optional[float]): Minimum pressure head in leaves [-1e8..1e2, cm]
+        kstem (Optional[float]): Hydraulic conductance between leaf and root xylem [1e-10..10, /d]
+        rxylem (Optional[float]): Xylem radius [1e-4..1, cm]
+        rootradius (Optional[float]): Root radius [1e-4..1, cm]
+        kroot (Optional[float]): Radial hydraulic conductivity of root tissue [1e-10..1e10, cm/d]
+        rootcoefa (Optional[float]): Defines relative distance between roots at which mean soil water content occurs [0..1, -]
+        swhydrlift (Optional[Literal[0, 1]]): Switch for possibility hydraulic lift in root system:
 
             * 1 - Yes
             * 2 - No
 
-        rooteff (float): Root system efficiency factor [0..1, -]
-        stephr (float): Step between values of hroot and hxylem in iteration cycle [0..10, cm]
-        criterhr (float): Maximum difference of Hroot between iterations; convergence criterium [0..10, cm]
-        taccur (float): Maximum absolute difference between simulated and calculated potential transpiration rate [1e-5..1e-2, cm/d]
+        rooteff (Optional[float]): Root system efficiency factor [0..1, -]
+        stephr (Optional[float]): Step between values of hroot and hxylem in iteration cycle [0..10, cm]
+        criterhr (Optional[float]): Maximum difference of Hroot between iterations; convergence criterium [0..10, cm]
+        taccur (Optional[float]): Maximum absolute difference between simulated and calculated potential transpiration rate [1e-5..1e-2, cm/d]
     """
 
     swdrought: _Literal[1, 2] | None = None
@@ -641,12 +640,14 @@ class SaltStress(_PySWAPBaseModel, _SerializableMixin, _YAMLValidatorMixin):
         swsalinity (Literal[0, 1, 2]): Switch for salt stress
 
             * 0 - No salt stress
-            * 1 - Maas and Hoffman reduction function. **Activates:** `saltmax`, `saltslope`
-            * 2 - Use osmotic head. **Activates:** `salthead`
+            * 1 - Maas and Hoffman reduction function.
+                    **Activates**: [`saltmax`, `saltslope`]
+            * 2 - Use osmotic head.
+                    **Activates**: [`salthead`]
 
-        saltmax (float): Threshold salt concentration in soil water [0..100 mg/cm3]
-        saltslope (float): Decline of root water uptake above threshold [0..1, cm3/mg]
-        salthead (float): Conversion factor salt concentration (mg/cm3) into osmotic head (cm) [0..1000, cm/(mg/cm3)]
+        saltmax (Optional[float]): Threshold salt concentration in soil water [0..100 mg/cm3]
+        saltslope (Optional[float]): Decline of root water uptake above threshold [0..1, cm3/mg]
+        salthead (Optional[float]): Conversion factor salt concentration (mg/cm3) into osmotic head (cm) [0..1000, cm/(mg/cm3)]
     """
 
     swsalinity: _Literal[0, 1, 2] | None = None
@@ -665,7 +666,7 @@ class CompensateRWUStress(_PySWAPBaseModel, _SerializableMixin, _YAMLValidatorMi
             * 1 - Compensation according to Jarvis (1989)
             * 2 - Compensation according to Walsum (2019)
 
-        swstressor (Literal1, 2, 3, 4, 5]]): Switch for stressor
+        swstressor (Literal[1, 2, 3, 4, 5]): Switch for stressor
 
             * 1 - Compensation of all stressors
             * 2 - Compensation of drought stress
@@ -690,11 +691,13 @@ class Interception(_PySWAPBaseModel, _SerializableMixin, _YAMLValidatorMixin):
         swinter (Literal[0, 1, 2]): Switch for rainfall interception method
 
             * 0 - No interception.
-            * 1 - Agricultural crops (Von Hoyningen-Hune and Braden). **Activates:** `cofab`
-            * 2 - Trees and forests (Gash). **Activates:** `intertb`
+            * 1 - Agricultural crops (Von Hoyningen-Hune and Braden).
+                    **Activates**: [`cofab`]
+            * 2 - Trees and forests (Gash).
+                    **Activates**: [`intertb`]
 
-        cofab (float): Interception coefficient, corresponding to maximum interception amount
-        intertb (INTERTB): Table with free throughfall coefficient, stemflow coefficient
+        cofab (Optional[float]): Interception coefficient, corresponding to maximum interception amount
+        intertb (Optional[INTERTB]): Table with free throughfall coefficient, stemflow coefficient
             canopy storage coefficient, average rainfall intensity and average evaporation
              intensity during rainfall from a wet canopy as function of time.
     """
@@ -713,13 +716,14 @@ class CO2Correction(
         swco2 (Literal[0, 1]): Switch for assimilation correction due to CO2 impact
 
             * 0 - No CO2 assimilation correction.
-            * 1 - CO2 assimilation correction. **Activates:** `co2amaxtb`, `co2efftb`, `co2tratb`
+            * 1 - CO2 assimilation correction.
+                    **Activates**: [`co2amaxtb`, `co2efftb`, `co2tratb`]
 
-        co2amaxtb (CO2AMAXTB): Table with correction of photosynthesis as a
+        co2amaxtb (Optional[CO2AMAXTB]): Table with correction of photosynthesis as a
             function of atmospheric CO2 concentration.
-        co2efftb (CO2EFFTB): Table with correction of radiation use efficiency as
+        co2efftb (Optional[CO2EFFTB]): Table with correction of radiation use efficiency as
             a function of atmospheric CO2 concentration
-        co2tratb (CO2TRATB): Table with correction of transpiration as a
+        co2tratb (Optional[CO2TRATB]): Table with correction of transpiration as a
             function of atmospheric CO2 concentration.
     """
 
@@ -739,41 +743,45 @@ class Preparation(_PySWAPBaseModel, _SerializableMixin, _YAMLValidatorMixin):
         swprep (Literal[0, 1]): Switch for preparation.
 
             * 1 - No preparation.
-            * 2 - Preparation before start of crop growth. **Activates:** `zprep`, `hprep`, `maxprepdelay`
+            * 2 - Preparation before start of crop growth.
+                    **Activates**: [`zprep`, `hprep`, `maxprepdelay`]
 
-        zprep (float): Z-level for monitoring work-ability for the crop [-100..0, cm].
-        hprep (float): Maximum pressure head during preparation [-200..0, cm].
-        maxprepdelay (int): Maximum delay of preparation from start of growing season [1..366, d].
+        zprep (Optional[float]): Z-level for monitoring work-ability for the crop [-100..0, cm].
+        hprep (Optional[float]): Maximum pressure head during preparation [-200..0, cm].
+        maxprepdelay (Optional[int]): Maximum delay of preparation from start of growing season [1..366, d].
         swsow (Literal[0, 1]): Switch for sowing
 
             * 0 - No sowing
-            * 1 - Sowing before start of crop growth. **Activates:** `zsow`, `hsow`, `ztempsow`, `tempsow`, `maxsowdelay`
+            * 1 - Sowing before start of crop growth.
+                    **Activates**: [`zsow`, `hsow`, `ztempsow`, `tempsow`, `maxsowdelay`]
 
-        zsow (float): Z-level for monitoring work-ability for the crop [-100..0, cm].
-        hsow (float): Maximum pressure head during sowing [-200..0, cm].
-        ztempsow (float): Z-level for monitoring temperature for sowing [-100..0, cm].
-        tempsow (float): Soil temperature needed for sowing [0..30, °C].
-        maxsowdelay (int): Maximum delay of sowing from start of growing season [1..366, d].
+        zsow (Optional[float]): Z-level for monitoring work-ability for the crop [-100..0, cm].
+        hsow (Optional[float]): Maximum pressure head during sowing [-200..0, cm].
+        ztempsow (Optional[float]): Z-level for monitoring temperature for sowing [-100..0, cm].
+        tempsow (Optional[float]): Soil temperature needed for sowing [0..30, °C].
+        maxsowdelay (Optional[int]): Maximum delay of sowing from start of growing season [1..366, d].
         swgerm (Literal[0, 1, 2]): Switch for germination.
 
             * 0 - No germination.
-            * 1 - Germination with temperature sum. **Activates:** `tsumemeopt`, `tbasem`, `teffmx`
+            * 1 - Germination with temperature sum.
+                    **Activates**: [`tsumemeopt`, `tbasem`, `teffmx`]
             * 2 - Germination with temperature sum and water potential.
-                **Activates:** `tsumemeopt`, `tbasem`, `teffmx`, `hdrygerm`, `hwetgerm`, `zgerm`, `agerm`
+                    **Activates**: [`tsumemeopt`, `tbasem`, `teffmx`, `hdrygerm`, `hwetgerm`, `zgerm`, `agerm`]
 
-        tsumemeopt (float): Temperature sum needed for crop emergence [0..1000, °C]
-        tbasem (float): Minimum temperature, used for germination trajectory [0..40, °C].
-        teffmx (float): Maximum temperature, used for germination trajectory [0..40, °C].
-        hdrygerm (float): Pressure head rootzone for dry germination trajectory [-1000..-0.01, cm].
-        hwetgerm (float): Pressure head rootzone for wet germination trajectory [-1000..-0.01, cm].
-        zgerm (float): Z-level for monitoring average pressure head for germination [-100..0, cm].
-        agerm (float): A-coefficient Eq. 24/25 Feddes & Van Wijk (1988) [0..1000, -].
+        tsumemeopt (Optional[float]): Temperature sum needed for crop emergence [0..1000, °C]
+        tbasem (Optional[float]): Minimum temperature, used for germination trajectory [0..40, °C].
+        teffmx (Optional[float]): Maximum temperature, used for germination trajectory [0..40, °C].
+        hdrygerm (Optional[float]): Pressure head rootzone for dry germination trajectory [-1000..-0.01, cm].
+        hwetgerm (Optional[float]): Pressure head rootzone for wet germination trajectory [-1000..-0.01, cm].
+        zgerm (Optional[float]): Z-level for monitoring average pressure head for germination [-100..0, cm].
+        agerm (Optional[float]): A-coefficient Eq. 24/25 Feddes & Van Wijk (1988) [0..1000, -].
         swharv (Literal[0, 1]): Switch for harvest.
 
             * 0 - Timing of harvest depends on end of growing period.
-            * 1 - Timing of harvest depends on development stage. **Activates:** `dvsend`
+            * 1 - Timing of harvest depends on development stage.
+                    **Activates**: [`dvsend`]
 
-        dvsend (float): Development stage at harvest [0..3 -].
+        dvsend (Optional[float]): Development stage at harvest [0..3 -].
     """
 
     swprep: _Literal[0, 1] | None = _Field(default=None)
@@ -804,60 +812,70 @@ class GrasslandManagement(_PySWAPBaseModel, _SerializableMixin, _YAMLValidatorMi
     Attributes:
         seqgrazmow (IntList): sequence of periods with different practices within calender year. Available options:
 
-            * 1 - Grazing. **Activates:** `swdmgrz`, `maxdaygrz`, `swlossgrz`, `tagprest`, `lsdatb`, `lsdbtb`
-            * 2 - Mowing. **Activates:** `swdmmow`, `maxdaymow`, `swlossmow`, `mowrest`, `dmmowdelay`
-            * 3 - Grazing with dewooling. **Activates:** `swdmgrz`, `maxdaygrz`, `swlossgrz`, `dewrest`, `lsdatb`, `lsdbtb`
+            * 1 - Grazing.
+                    **Activates**: [`swdmgrz`, `maxdaygrz`, `swlossgrz`, `tagprest`, `lsdatb`, `lsdbtb`]
+            * 2 - Mowing.
+                    **Activates**: [`swdmmow`, `maxdaymow`, `swlossmow`, `mowrest`, `dmmowdelay`]
+            * 3 - Grazing with dewooling.
+                    **Activates**: [`swdmgrz`, `maxdaygrz`, `swlossgrz`, `dewrest`, `lsdatb`, `lsdbtb`]
 
         swharvest (Literal[1, 2]): Switch for timing harvest, either for mowing or grazing
 
-            * 1 - Use dry matter threshold. **Activates:** `swdmgrz`
-            * 2 - Use fixed dates. **Activates:** `dateharvest`
+            * 1 - Use dry matter threshold.
+                    **Activates**: [`swdmgrz`]
+            * 2 - Use fixed dates.
+                    **Activates**: [`dateharvest`]
 
-        dateharvest (DateList): Harvest dates (maximum 999)
-        swdmgrz (Literal[1, 2]): Switch for dry matter threshold to trigger harvest by grazing
+        dateharvest (Optional[DateList]): Harvest dates (maximum 999)
+        swdmgrz (Optional[Literal[1, 2]]): Switch for dry matter threshold to trigger harvest by grazing
 
-            * 1 - Use fixed threshold. **Activates:** `dmgrazing`
-            * 2 - Use flexible threshold. **Activates:** `dmgrztb`
+            * 1 - Use fixed threshold.
+                    **Activates**: [`dmgrazing`]
+            * 2 - Use flexible threshold.
+                    **Activates**: [`dmgrztb`]
 
-        dmgrazing (float): Minimum dry matter amount for cattle to enter the field [0..1d6, kg DM/ha]
-        dmgrztb (DMGRZTB): Table with threshold of above ground dry matter to
+        dmgrazing (Optional[float]): Minimum dry matter amount for cattle to enter the field [0..1d6, kg DM/ha]
+        dmgrztb (Optional[DMGRZTB]): Table with threshold of above ground dry matter to
             trigger grazing as function of daynumber.
-        maxdaygrz (int): Maximum growing period after harvest [1..366, -]
-        swlossgrz (Literal[0, 1])]: [UNCERTAIN WHAT THIS DOES] Switch for losses
+        maxdaygrz (Optional[int]): Maximum growing period after harvest [1..366, -]
+        swlossgrz (Optional[Literal[0, 1]]): [UNCERTAIN WHAT THIS DOES] Switch for losses
             due to insufficient pressure head during grazing
 
             * 0 - No loss.
             * 1 - Losses due to treading.
 
-        tagprest (float): Minimum amount of above ground DM after grazing [0..1d6, kg DM/ha]
-        dewrest (float): Remaining yield above ground after dewooling event [0..1d6, kg DM/ha]
-        lsdatb (LSDATB): Table with actual livestock density of each grazing period.
-        lsdbtb (LSDBTB): Table with relation between livestock density, number of
+        tagprest (Optional[float]): Minimum amount of above ground DM after grazing [0..1d6, kg DM/ha]
+        dewrest (Optional[float]): Remaining yield above ground after dewooling event [0..1d6, kg DM/ha]
+        lsdatb (Optional[LSDATB]): Table with actual livestock density of each grazing period.
+        lsdbtb (Optional[LSDBTB]): Table with relation between livestock density, number of
             grazing days and dry matter uptake.
-        swdmmow (int): Switch for dry matter threshold to trigger harvest by mowing:
+        swdmmow (Optional[int]): Switch for dry matter threshold to trigger harvest by mowing:
 
-            * 1 - Use fixed threshold. **Activates:** `dmharvest`, `daylastharvest`, `dmlastharvest`
-            * 2 - Use flexible threshold. **Activates:** `dmmowtb`
+            * 1 - Use fixed threshold.
+                    **Activates**: [`dmharvest`, `daylastharvest`, `dmlastharvest`]
+            * 2 - Use flexible threshold.
+                    **Activates**: [`dmmowtb`]
 
-        dmharvest (float): Threshold of above ground dry matter to trigger mowing [0..1d6, kg DM/ha]
-        daylastharvest (int): Last calendar day on which mowing may occur [1..366, -]
-        dmlastharvest (float): Minimum above ground dry matter for mowing on last date [0..1d6, kg DM/ha]
-        dmmowtb (DMMOWTB): Table with dry matter mowing threshold
-        maxdaymow (int): Maximum growing period after harvest [1..366, d]
-        swlossmow (int): [UNCERTAIN WHAT THIS DOES] Switch for losses due to
+        dmharvest (Optional[float]): Threshold of above ground dry matter to trigger mowing [0..1d6, kg DM/ha]
+        daylastharvest (Optional[int]): Last calendar day on which mowing may occur [1..366, -]
+        dmlastharvest (Optional[float]): Minimum above ground dry matter for mowing on last date [0..1d6, kg DM/ha]
+        dmmowtb (Optional[DMMOWTB]): Table with dry matter mowing threshold
+        maxdaymow (Optional[int]): Maximum growing period after harvest [1..366, d]
+        swlossmow (Optional[int]): [UNCERTAIN WHAT THIS DOES] Switch for losses due to
             insufficient pressure head during mowing:
 
             * 0 - No loss
             * 1 - Losses due to treading.
 
-        mowrest (float): Remaining yield above ground after mowing event [0..1d6 kg DM/ha, R]
-        dmmowdelay (DMMOWDELAY): Relation between dry matter harvest [0..1d6 kg/ha, R] and days of delay in regrowth [0..366 d, I] after mowing
+        mowrest (Optional[float]): Remaining yield above ground after mowing event [0..1d6 kg DM/ha, R]
+        dmmowdelay (Optional[DMMOWDELAY]): Relation between dry matter harvest [0..1d6 kg/ha, R] and days of delay in regrowth [0..366 d, I] after mowing
         swpotrelmf (int): Switch for calculation of potential yield
 
             * 1 - Theoretical potential yield.
-            * 2 - Attainable yield. **Activates:** `relmf`
+            * 2 - Attainable yield.
+                    **Activates**: [`relmf`]
 
-        relmf (float): Relative management factor to reduce theoretical potential yield to attainable yield [0..1, -]
+        relmf (Optional[float]): Relative management factor to reduce theoretical potential yield to attainable yield [0..1, -]
     """
 
     seqgrazmow: _IntList | None = None
@@ -946,7 +964,7 @@ class Crop(_PySWAPBaseModel, _SerializableMixin, _FileMixin, _YAMLValidatorMixin
 
         rds (float): Maximum rooting depth of the crop for this soil [1..5000, cm].
         croprotation (CROPROTATION): Table with crop rotation data.
-        cropfiles (List[CropFile]]): List of crop files.
+        cropfiles (List[CropFile]): List of crop files.
 
     Methods:
         write_crop: Write the crop files.

@@ -73,13 +73,13 @@ class GeneralSettings(_PySWAPBaseModel, _SerializableMixin, _YAMLValidatorMixin)
         swscre (Literal[0, 1, 2]): Switch, display progression of simulation
             run to screen:
 
-            * 0 - Don't display to screen
+            * 0 - Don't display to screen (default)
             * 1 - Display water balance components
             * 2 - Display daynumber
 
         swerror (Literal[0, 1]): Switch for printing errors to screen:
 
-            * 0 - Don't print error messages
+            * 0 - Don't print error messages (default)
             * 1 - Print error messages
 
         tstart (str): Start date of simulation run [YYYY-MM-DD].
@@ -88,7 +88,8 @@ class GeneralSettings(_PySWAPBaseModel, _SerializableMixin, _YAMLValidatorMixin)
         swmonth (Literal[0, 1]): Switch for when to write output:
 
             * 0 - Output each month
-            * 1 - Output via `period`, `swres` or `swodat`
+            * 1 - Output via `period`, `swres` or `swodat` (default)
+                    **Activates**: [`period`, `swres`, `swodat`]
 
         period (Optional[int]): Fixed output interval [0..366, day]
         swres (Optional[Literal[0, 1]]): Switch whether to reset output interval counter
@@ -100,23 +101,26 @@ class GeneralSettings(_PySWAPBaseModel, _SerializableMixin, _YAMLValidatorMixin)
         swodat (Optional[Literal[0, 1]]): Switch for extra output dates.
 
             * 0 - No extra output dates
-            * 1 - Extra output dates. **Activates** `outdatin`
+            * 1 - Extra output dates.
+                    **Activates**: [`outdatin`]
 
         outdatin (Optional[DateList]): List of specific dates [YYY-MM-DD].
         swyrvar (Literal[0, 1]): Output times for overall water and solute
             balances in *.BAL and *.BLC file: choose output at a fixed date
             each year or at different dates
 
-            * 0 - each year output at the same date. **Activates** `datefix`
-            * 1 - output at specific dates. **Activates** `outdat`
+            * 0 - Each year output at the same date (default).
+                    **Activates**: [`datefix`]
+            * 1 - Output at specific dates.
+                    **Activates**: [`outdat`]
 
-        datefix (Optional[DayMonth]): Fixed date for output [YYYY-MM-DD].
+        datefix (Optional[DayMonth]): Fixed date for output [MM-DD].
         outdat (Optional[DateList]): Specify all output dates [YYYY-MM-DD]
         outfil (str): Generic file name of output files. **Immutable attribute**.
         swheader (Literal[0, 1]): Print header at the start of each
             balance period:
 
-            * 0 - Don't print header
+            * 0 - Don't print header (default)
             * 1 - Print header
 
         extensions (list): List of file extensions SWAP should return. It is recommended to use
@@ -124,7 +128,9 @@ class GeneralSettings(_PySWAPBaseModel, _SerializableMixin, _YAMLValidatorMixin)
             Available options are:
 
             * "csv": Variables over time
+                    **Activates**: [`inlist_csv`]
             * "csv_tz": Variables over time and depth
+                    **Activates**: [`inlist_csv_tz`]
             * "wba": Cumulative water balance
             * "end": End-conditions
             * "vap": Soil profiles of moisture, solute and temperature
@@ -252,22 +258,27 @@ class GeneralSettings(_PySWAPBaseModel, _SerializableMixin, _YAMLValidatorMixin)
 
         swafo (Literal[0, 1, 2]): Switch, output file with formatted hydrological data:
 
-            * 0 - No output.
-            * 1 - Output to a file named .AFO. **Activates** `critdevmasbal`, `swdiscrvert`
-            * 2 - Output to a file named .BFO. **Activates** `critdevmasbal`, `swdiscrvert`
+            * 0 - No output (default)
+            * 1 - Output to a file named .AFO.
+                    **Activates**: [`critdevmasbal`, `swdiscrvert`]
+            * 2 - Output to a file named .BFO.
+                    **Activates**: [`critdevmasbal`, `swdiscrvert`]
 
         swaun (Literal[0, 1, 2]): Switch, output file with unformatted hydrological data:
 
-            * 0 - No output
-            * 1 - Output to a file named .AUN. **Activates** `critdevmasbal`, `swdiscrvert`
-            * 2 - Output to a file named .BUN. **Activates** `critdevmasbal`, `swdiscrvert`
+            * 0 - No output (default)
+            * 1 - Output to a file named .AUN.
+                    **Activates**: [`critdevmasbal`, `swdiscrvert`]
+            * 2 - Output to a file named .BUN.
+                    **Activates**: [`critdevmasbal`, `swdiscrvert`]
 
         critdevmasbal (Optional[float]): Critical deviation in
             water balance during `period` [0.0..1.0, cm].
-        swdiscrvert (Literal[0, 1]): Switch to convert vertical discretization:
+        swdiscrvert (Optional[Literal[0, 1]]): Switch to convert vertical discretization:
 
-            * 0 - No conversion
-            * 1 - Convert vertical discretization. **Activates** `numnodnew`, `dznew`.
+            * 0 - No conversion (default)
+            * 1 - Convert vertical discretization.
+                    **Activates**: [`numnodnew`, `dznew`]
 
         numnodnew (Optional[int]): New number of nodes [1..macp, -].
         dznew (Optional[FloatList]): New thickness of compartments [1e-6..5e2, cm].
@@ -288,8 +299,8 @@ class GeneralSettings(_PySWAPBaseModel, _SerializableMixin, _YAMLValidatorMixin)
     tstart: _date | None = None
     tend: _date | None = None
     nprintday: int = _Field(default=1, ge=1, le=1440)
-    swmonth: _Literal[0, 1] | None = None  # 1
-    swyrvar: _Literal[0, 1] | None = None  # 0
+    swmonth: _Literal[0, 1] | None = None
+    swyrvar: _Literal[0, 1] | None = None
     period: int | None = _Field(default=None, **_YEARRANGE)
     swres: _Literal[0, 1] | None = None
     swodat: _Literal[0, 1] | None = None

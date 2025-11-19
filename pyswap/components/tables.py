@@ -1128,11 +1128,34 @@ class DATOWLTB5(BaseTableModel):
 
 
 class SECWATLVL(BaseTableModel):
+    """Water level in secondary water course as function of date.
+
+    Attributes:
+        DATE2: (Series[DateTime]): Date of the water level [YYYY-MM-DD]
+        WLS: (Series[float]): Water level in secondary water course [altcu-1000..altcu-0.01, cm]
+
+    """
+
     DATE2: Series[pa.DateTime]
     WLS: Series[float]
 
 
 class MANSECWATLVL(BaseTableModel):
+    """Parameters for each management period.
+
+    Attributes:
+        IMPER_4B: (Series[float]): Index of management period [1..nmper, -]
+        IMPEND: (Series[pa.DateTime]): Date that period ends [YYYY-MM-DD]
+        SWMAN: (Series[float]): Type of water management [1..2, -]
+
+            * 1: fixed weir crest
+            * 2: automatic weir
+
+        WSCAP: (Series[float]): Surface water supply capacity [0..100, cm/d]
+        WLDIP: (Series[float]): Allowed dip of surface water level before starting supply [0..100, cm]
+        INTWL: (Series[float]): Length of water-level adjustment period (SWMAN = 2 only) [1..31, d]
+    """
+
     IMPER_4B: Series[float]
     IMPEND: Series[pa.DateTime]
     SWMAN: Series[float]

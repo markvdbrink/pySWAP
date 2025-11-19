@@ -90,55 +90,56 @@ class Meteorology(_PySWAPBaseModel, _SerializableMixin, _YAMLValidatorMixin):
     Attributes:
         metfile (MetFile): MetFile model containing meteorological data to
             be saved to .met file.
-        meteo_location (Location): a point GIS object. If provided, lat
+        meteo_location (Location): A point GIS object. If provided, lat
             and alt must not be provided. By default they are overwritten.
-        lat (Decimal): latitude of the meteo station [degrees].
+        lat (float): Latitude of the meteo station [-90..90, degrees].
+        swdivide (int): Switch for distribution of E and T:
+
+            * 0: Based on crop and soil factors (default).
+            * 1: Based on direct application of Penman-Monteith.
+
         swetr (int): Switch type of weather data for
             potential evapotranspiration:
 
-            * 0 - Use basic weather data and apply Penman-Monteith equation.
-                **Activates** `alt`, `altw`, `angstroma`, `angstromb`, `swmetdetail`
-            * 1 - Use reference evapotranspiration data in combination with
-                crop factors. **Activates** `swetsine`, `swrain`
+            * 0: Use basic weather data and apply Penman-Monteith equation.
+                **Activates**: [`alt`, `altw`, `angstroma`, `angstromb`, `swmetdetail`]
+            * 1: Use reference evapotranspiration data in combination with
+                crop factors.
+                **Activates**: [`swetsine`, `swrain`]
 
-        alt (Decimal): Altitude of the meteo station [m].
-        altw (Decimal): Altitude of the wind [m].
-        angstroma (Decimal): Fraction of extraterrestrial radiation reaching
-            the earth on overcast days.
-        angstromb (Decimal): Additional fraction of extraterrestrial radiation
-            reaching the earth on clear days.
-        swdivide (int): Switch for distribution of E and T. Defaults to 0:
+        alt (Optional[float]): Altitude of the meteo station [-400..3000, m].
+        altw (Optional[float]): Altitude of the wind [0..99, m].
+        angstroma (Optional[float]): Fraction of extraterrestrial radiation reaching
+            the earth on overcast days [0..1, -].
+        angstromb (Optional[float]): Additional fraction of extraterrestrial radiation
+            reaching the earth on clear days [0..1, -].
 
-            * 0 - Based on crop and soil factors.
-            * 1 - Based on direct application of Penman-Monteith.
-
-        swmetdetail (int): Switch for time interval of evapotranspiration and
+        swmetdetail (Optional[int]): Switch for time interval of evapotranspiration and
             rainfall weather data:
 
-            * 0 - Daily data.
-            * 1 - Subdaily data. **Activates** `nmetdetail`
+            * 0: Daily data.
+            * 1: Subdaily data.
+                **Activates:** [`nmetdetail`]
 
-        nmetdetail (int): Number of weather data records each day.
-        swetsine (int): Switch, distribute daily Tp and Ep according to
-            sinus wave, default to 0:
+        nmetdetail (Optional[int]): Number of weather data records each day [1..96, -].
+        swetsine (Optional[int]): Switch, distribute daily Tp and Ep according to
+            sinus wave:
 
-            * 0 - No distribution.
-            * 1 - Distribute Tp and Ep according to sinus wave.
+            * 0: No distribution (default).
+            * 1: Distribute Tp and Ep according to sinus wave.
 
-        swrain (int): Switch for use of actual rainfall intensity,
-            defaults to 0:
+        swrain (Optional[int]): Switch for use of actual rainfall intensity:
 
-            * 0 - Use daily rainfall amounts.
-            * 1 - Use daily rainfall amounts + mean intensity. **Activates** `table_rainflux`
-            * 2 - Use daily rainfall amounts + duration.
-            * 3 - Use detailed rainfall records (dt < 1 day), as supplied in
-                separate file. **Activates** `rainfil`
+            * 0: Use daily rainfall amounts (default).
+            * 1: Use daily rainfall amounts + mean intensity.
+                    **Activates:** [`table_rainflux`]
+            * 2: Use daily rainfall amounts + duration.
+            * 3: Use detailed rainfall records (dt < 1 day), as supplied in
+                separate file.
+                    **Activates:** [`rainfil`]
 
-        table_rainflux (RAINFLUX): Table of rainfall intensity.
-        rainfil (str): File name of file with detailed rainfall data. # TODO
-
-    Properties:
-        met: Returns the string representation of the met file.
+        table_rainflux (Optional[RAINFLUX]): Table of rainfall intensity.
+        rainfil (Optional[str]): File name of file with detailed rainfall data.
 
     Methods:
         write_met: Writes the .met file.
@@ -162,6 +163,7 @@ class Meteorology(_PySWAPBaseModel, _SerializableMixin, _YAMLValidatorMixin):
 
     @property
     def met(self):
+        """Returns the string representation of the .met file."""
         return self.metfile.content.to_csv(index=False, lineterminator="\n")
 
     def model_post_init(self, __context=None):
@@ -190,7 +192,7 @@ def metfile_from_csv(metfil: str, csv_path: str, **kwargs) -> MetFile:
     !!! note
 
         The CSV file must contain the following columns:
-        station, dd, mm, yyyy, tmin, tmax, hum, wet, wind, rain, etref, rad
+        STATION, DD, MM, YYYY, TMIN, TMAX, HUM, WET, WIND, RAIN, ETREF, RAD
 
     Parameters:
         metfil (str): name of the .met file

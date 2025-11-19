@@ -82,16 +82,16 @@ class Flux(_PySWAPBaseModel, _SerializableMixin, _YAMLValidatorMixin):
         infres (float): Infiltration resistance [10 .. 1e5 d].
         swallo (Literal[1, 2]): Switch to allow drainage from this level.
 
-            * 1 - Drainage and infiltration are both allowed.
-            * 2 - Only infiltration is allowed.
-            * 3 - Only drainage is allowed.
+            * 1: Drainage and infiltration are both allowed.
+            * 2: Only infiltration is allowed.
+            * 3: Only drainage is allowed.
 
         l (Optional[float]): Drain spacing [1 .. 1e5 m].
         zbotdr (float): Level of the bottom of the drain [-1e4 .. 0 cm].
         swdtyp (Literal[1, 2]): Drainage type.
 
-            * 1 - drain tube.
-            * 2 - open channel.
+            * 1: drain tube.
+            * 2: open channel.
 
         datowltb (Table): date DATOWL [date] and channel water
             level LEVEL. Add suffix to the dataframe headers
@@ -142,80 +142,118 @@ class Flux(_PySWAPBaseModel, _SerializableMixin, _YAMLValidatorMixin):
 class DraFile(_PySWAPBaseModel, _FileMixin, _SerializableMixin):
     """Content of the drainage file (.dra).
 
-    Attributes general:
-        dramet (Literal[1, 2, 3]): Method of lateral drainage calculation
-
-            * 1 - Use table of drainage flux - groundwater level relation.
-            * 2 - Use drainage formula of Hooghoudt or Ernst.
-            * 3 - Use drainage/infiltration resistance, multi-level if needed.
-
+    Attributes:
         swdivd (Literal[1, 2]): Calculate vertical distribution of
-            drainage flux in groundwater.
-        cofani (Optional[FloatList]): specify anisotropy factor COFANI
-            (horizontal/vertical saturated hydraulic conductivity) for
-            each soil layer (maximum MAHO)
-        swdislay (Literal[0, 1, 2, 3, '-']): Switch to adjust
+            drainage flux in groundwater:
+
+            * 0: Don't calculate
+            * 1: Calculate.
+                    **Activates**: [`cofani`]
+
+        cofani (Optional[FloatList]): Anisotropy factor for each soil layer
+            (horizontal/vertical saturated hydraulic conductivity)
+        dramet (Literal[1, 2, 3]): Method of lateral drainage calculation.
+            Activated by `swdra=1` in the `Drainage` object.
+
+            * 1: Use table of drainage flux - groundwater level relation.
+                    **Activates**: [`lm1`, `qdrntb`]
+            * 2: Use drainage formula of Hooghoudt or Ernst.
+                    **Activates**: [`lm2`, `shape`, `wetper`, `zbotdr`, `entres`, `ipos`, `basegw`, `khtop`]
+            * 3: Use drainage/infiltration resistance, multi-level if needed.
+                    **Activates**: [`nrlevs`, `swintfl`, `swtopnrsrf`, `fluxes`]
+
+        swdislay (Literal[0, 1, 2]): Switch to adjust
             upper boundary of model discharge layer.
 
-            * 0 - No adjustment
-            * 1 - Adjustment based on depth of top of model discharge
-            * 2 - Adjustment based on factor of top of model discharge
+            * 0: No adjustment
+            * 1: Adjustment based on depth of top of model discharge
+            * 2: Adjustment based on factor of top of model discharge
+        drainageleveltopparams
 
-    Attributes drainage flux table (option 1):
-        lm1 (float): Drain spacing
-        table_qdrntb (Table): Table of drainage flux - groundwater level.
+        lm1 (Optional[float]): Drain spacing [1..1000, m]
+        qdrntb (Optional[QDRNTB]): Table with relation between drainage flux and groundwater level.
+        lm2 (Optional[float]): Drain spacing [1..1000, m].
+        shape (Optional[float]): Shape factor to account for actual location between
+            drain and water divide [0..1, -].
+        wetper (Optional[float]): Wet perimeter of the drain [0..1000, cm].
+        zbotdr (Optional[float]): Level below surface (negative) of drain bottom [-1000..0, cm].
+        entres (Optional[float]): Drain entry resistance [0..1000, d].
+        ipos (Optional[Literal[1, 2, 3, 4, 5]]): Position of drain
 
-    Attributes drainage formula (option 2):
-        lm2 (float): Drain spacing.
-        shape (float): Shape factor to account for actual location between
-            drain and water divide.
-        wetper (float): Wet perimeter of the drain.
-        zbotdr (float): Level of drain bottom.
-        entres (float): Drain entry resistance.
-        ipos (Literal[1, 2, 3, 4, 5]): Position of drain
+            * 1: On top of an impervious layer in a homogeneous profile
+            * 2: Above an impervious layer in a homogeneous profile
+            * 3: At the interface of a fine upper and a coarse lower soil layer
+                    **Activates**: [`khbot`, `zintf`]
+            * 4: In the lower, more coarse soil layer
+                    **Activates**: [`khbot`, `zintf`, `kvtop`, `kvbot`]
+            * 5: In the upper, more fine soil layer
+                    **Activates**: [`khbot`, `zintf`, `kvtop`, `kvbot`, `geofac`]
 
-            * 1 - On top of an impervious layer in a homogeneous profile
-            * 2 - Above an impervious layer in a homogeneous profile
-            * 3 - At the interface of a fine upper and a coarse lower
-                soil layer
-            * 4 - In the lower, more coarse soil layer
-            * 5 - In the upper, more fine soil layer
-
-        basegw (float): Level of impervious layer.
-        khtop (float): Horizontal hydraulic conductivity of the top layer.
-        khbot (Optional[float]): Horizontal hydraulic conductivity of
-            the bottom layer.
+        basegw (Optional[float]): Level of impervious layer below soil surface (negative)[-1e4..0, cm].
+        khtop (Optional[float]): Horizontal hydraulic conductivity of the top layer [0..1000, cm/d].
+        khbot (Optional[float]): Horizontal hydraulic conductivity of the bottom layer [0..1000, cm/d]
         zintf (Optional[float]): Interface level of the coarse and
-            fine soil layer.
+            fine soil layer [-1e4..0, cm].
         kvtop (Optional[float]): Vertical hydraulic conductivity of
-            the top layer.
+            the top layer [0..1000, cm/d].
         kvbot (Optional[float]): Vertical hydraulic conductivity of
-            the bottom layer.
-        geofac (Optional[float]): Geometric factor of Ernst.
+            the bottom layer [0..1000, cm/d].
+        geofac (Optional[float]): Geometric factor of Ernst [0..100, -].
+        nrlevs (Optional[int]): Number of drainage levels [1..5, -].
+        swintfl (Optional[Literal[0, 1]]): Option for interflow in highest drainage level (shallow system with short residence time)
 
-    Attributes drainage infiltration resistance (option 3):
-        nrlevs (int): Number of drainage levels.
-        swintfl (Literal[0, 1]): Option for interflow in highest
-            drainage level (shallow system with short residence time).
-        cofintflb (float): Coefficient for interflow relation.
-        expintflb (float): Exponent for interflow relation.
-        swtopnrsrf (Literal[0, 1]): Switch to enable adjustment of
-            model discharge layer.
-        fluxes (Flux): Flux object containing parameters for each drainage level.
+            * 0: No
+            * 1: Yes
+                    **Activates**: [`cofintflb`, `expintflb`]
+
+        cofintflb (Optional[float]): Coefficient for interflow relation.
+        expintflb (Optional[float]): Exponent for interflow relation.
+        swtopnrsrf (Literal[0, 1]): Switch to enable adjustment of model discharge layer.
+
+            * 0: No
+            * 1: Yes, the bottom of the highest order drainage system (zbordr(numdrain))
+                represents the maximum depth of the interflow.
+
+        fluxes (Optional[Flux]): Flux object containing parameters for each drainage level.
 
     Attributes extended section (surface water management):
         altcu (float): Altitude of the control unit relative to reference level.
         nrsrf (int): Number of subsurface drainage levels.
-        swnrsrf (Literal[0, 1, 2]): Switch to introduce rapid subsurface drainage.
+        drntb (DRNTB): Table with physical characteristics of each subsurface drainage level
+        swnrsrf (Literal[0, 1, 2]): Switch to introduce rapid subsurface drainage
+
+            * 0: No rapid drainage
+            * 1: Rapid drainage in the highest drainage system (implies adjustment of RDRAIN of highest drainage system)
+                    **Activates**: [`rsurfdeep`, `rsurfshallow`]
+            * 2: Rapid drainage as interflow according to a power relation (implies adjustment of RDRAIN of highest drainage system)
+
         rsurfdeep (Optional[float]): Maximum resistance of rapid subsurface drainage.
         rsurfshallow (Optional[float]): Minimum resistance of rapid subsurface drainage.
-        swsrf (Literal[1, 2, 3]): Switch for interaction with surface water system.
-        swsec (Optional[Literal[1, 2]]): Option for surface water level of secondary system.
+        swsrf (Literal[1, 2, 3]): Switch for interaction with surface water system
+
+            * 1: No interaction with surface water system
+            * 2: Surface water system is simulated without separate primary system
+            * 3: Surface water system is simulated with separate primary system
+
+        swsec (Optional[Literal[1, 2]]): Option for surface water level of secondary system
+
+            * 1: Surface water level is input
+            * 2: Surface water level is simulated
+
+        secwatlvl (Optional[]): Table with water level in secondary course as function of date
         wlact (Optional[float]): Initial surface water level.
         osswlm (Optional[float]): Criterium for warning about oscillation.
         nmper (Optional[int]): Number of management periods.
+        mansecwatlvl
         swqhr (Optional[Literal[1, 2]]): Switch for type of discharge relationship.
+
+            * 1: Exponential relationship
+            * 2: Table
+
         sofcu (Optional[float]): Size of the control unit.
+        qweir
+        qweirtb
+        priwatlvl
     """
 
     _extension = _PrivateAttr("dra")
@@ -223,7 +261,8 @@ class DraFile(_PySWAPBaseModel, _FileMixin, _SerializableMixin):
     dramet: _Literal[1, 2, 3] | None = None
     swdivd: _Literal[1, 2] | None = None
     cofani: _FloatList | None = None
-    swdislay: _Literal[0, 1, 2, 3, "-"] | None = None
+    swdislay: _Literal[0, 1, 2, 3] | None = None
+    drainageleveltopparams: _Table | None = None
     # Drainage flux table
     lm1: float | None = _Field(default=None, ge=1.0, le=1000.0)
     qdrntb: _Table | None = None
@@ -263,10 +302,9 @@ class DraFile(_PySWAPBaseModel, _FileMixin, _SerializableMixin):
     wlact: float | None = _Field(default=None, ge=-300000.0, le=300000.0)
     osswlm: float | None = _Field(default=None, ge=0.0, le=10.0)
     nmper: int | None = _Field(default=None, ge=1, le=3660)
+    mansecwatlvl: _Table | None = None
     swqhr: _Literal[1, 2] | None = None
     sofcu: float | None = _Field(default=None, ge=0.1, le=100000.0)
-    mansecwatlvl: _Table | None = None
-    drainageleveltopparams: _Table | None = None
     qweir: _Table | None = None
     qweirtb: _Table | None = None
     priwatlvl: _Table | None = None
@@ -282,13 +320,15 @@ class Drainage(_PySWAPBaseModel, _SerializableMixin, _YAMLValidatorMixin):
     Attributes:
         swdra (Literal[0, 1, 2]): Switch for lateral drainage.
 
-            * 0 - No drainage.
-            * 1 - Simulate with a basic drainage routine.
-            * 2 - Simulate with surface water management.
+            * 0: No drainage.
+            * 1: Simulate with a basic drainage routine.
+                    **Activates**: [`drafile`]
+            * 2: Simulate with surface water management.
+                    **Activates**: [`drafile`]
 
         drfil (str): Name of the file. This attribute is frozen, there is no
             need to change it.
-        drafile (Optional[Any]): Content of the drainage file.
+        drafile (Optional[DraFile]): Content of the drainage file.
     """
 
     swdra: _Literal[0, 1, 2] | None = None
