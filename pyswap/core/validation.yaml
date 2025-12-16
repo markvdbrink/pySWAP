@@ -186,7 +186,7 @@ Meteorology:
     1:
       - nmetdetail
 
-BottomBoundaryBase:
+BottomBoundary:
   swbotb:
     1:
       - gwlevel

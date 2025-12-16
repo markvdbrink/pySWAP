@@ -72,89 +72,107 @@ class BottomBoundary(
     whether the boundary conditions are written to a .bbc file.
 
     Attributes:
-        swbbcfile (Optional[Literal[0, 1]]): Specify boundary conditions in
-            current file (0) or in a separate .bbc file (1). The preferred is to
-            define the boundary conditions in the .swp file. bbcfil might become
-            deprecated in the future.
+        swbbcfile (Literal[0, 1]): Switch whether to generate a .bbc file
 
-        swbotb (Optional[Literal[1, 2, 3, 4, 5, 6, 7, 8]]): Switch for type of
+            * 0: Specify boundary conditions in current file (preferred).
+            * 1: Specify boundary conditions in a separate .bbc file. Might be
+                deprecated in the future.
+                    **Activates**: [`bbcfile`]
+
+        bbcfil (Optional[String]): Name of file with bottom boundary data
+            (without .BBC extension).
+        swbotb (Literal[1, 2, 3, 4, 5, 6, 7, 8]): Switch for type of
             bottom boundary.
 
-            * 1 - prescribe groundwater level;
-            * 2 - prescribe bottom flux;
-            * 3 - calculate bottom flux from hydraulic head of deep aquifer;
-            * 4 - calculate bottom flux as function of groundwater level;
-            * 5 - prescribe soil water pressure head of bottom compartment;
-            * 6 - bottom flux equals zero;
-            * 7 - free drainage of soil profile;
-            * 8 - free outflow at soil-air interface.
+            * 1: Prescribe groundwater level
+                    **Activates**: [`gwlevel`]
+            * 2: Prescribe bottom flux
+                    **Activates**: [`sw2`]
+            * 3: Calculate bottom flux from hydraulic head of deep aquifer
+                    **Activates**: [`swbotb3resvert`, `swbotb3impl`, `shape`
+                        `hdrain`, `rimlay`, `sw3`, `sw4`]
+            * 4: Calculate bottom flux as function of groundwater level
+                    **Activates**: [`swqhbot`]
+            * 5: Prescribe soil water pressure head of bottom compartment
+                    **Activates**: [`hbot5`]
+            * 6: Bottom flux equals zero.
+            * 7: Free drainage of soil profile.
+            * 8: Free outflow at soil-air interface.
 
+        gwlevel (Optional[GWLEVEL]): Table with groundwater level data.
         sw2 (Optional[Literal[1, 2]]): Specify whether a sinus function or
             a table are used for the bottom flux.
 
-            * 1 - sinus function;
-            * 2 - table.
+            * 1: Sinus function
+                    **Activates**: [`sinave`, `sinamp`, `sinmax`]
+            * 2: Table
+                    **Activates**: [`qbot`]
 
-        sw3 (Optional[Literal[1, 2]]): Specify whether a sinus function or
-            a table are used for the hydraulic head in the deep aquifer.
-
-            * 1 - sinus function;
-            * 2 - table.
-
-        sw4 (Optional[Literal[0, 1]]): An extra groundwater flux can be
-            specified which is added to above specified flux.
-
-            * 0 - no extra flux;
-            * 1 - extra flux.
+        sinave (Optional[float]): Average value of bottom flux (positive is
+            upwards) [-10..10, cm/d]
+        sinamp (Optional[float]): Amplitude of bottom flux sine function [-10..10, cm/d]
+        sinmax (Optional[float]): Time of the year with maximum bottom flux [0..366, d]
+        qbot (Optional[QBOT2]): Table with bottom flux data.
 
         swbotb3resvert (Optional[Literal[0, 1]]): Switch for vertical
             hydraulic resistance between bottom boundary and groundwater level.
 
-            * 0 - Include vertical hydraulic resistance
-            * 1 - Suppress vertical hydraulic resistance
+            * 0: Include vertical hydraulic resistance.
+            * 1: Suppress vertical hydraulic resistance.
 
         swbotb3impl (Optional[Literal[0, 1]]): Switch for numerical solution
             of bottom flux.
 
-            * 0 - Explicit solution (choose always when SHAPE < 1.0);
-            * 1 - Implicit solution.
+            * 0: Explicit solution (choose always when `shape` < 1.0).
+            * 1: Implicit solution.
+
+        shape (Optional[float]): Shape factor to derive average groundwater
+            level [0..1, -].
+        hdrain (Optional[float]): Mean drain base to correct for average
+            groundwater level [-1e4..0, cm].
+        rimlay (Optional[float]): Vertical resistance of aquitard [0..1e5, d].
+        sw3 (Optional[Literal[1, 2]]): Specify whether a sinus function or
+            a table are used for the hydraulic head in the deep aquifer.
+
+            * 1: Sinus function
+                    **Activates**: [`aqave`, `aqamp`, `aqtmax`, `aqper`]
+            * 2: Table
+                    **Activates**: [`haquif`]
+
+        aqave (Optional[float]): Average hydraulic head in underlaying
+            aquifer [-1e4..1e3, cm].
+        aqamp (Optional[float]): Amplitude hydraulic head sinus wave [0..1e3, cm].
+        aqtmax (Optional[float]): First time of the year with maximum
+            hydraulic head [0..366, d].
+        aqper (Optional[float]): Period of hydraulic head sinus wave [0..366, d].
+        haquif (Optional[HAQUIF]): Table with average pressure head in
+            underlaying aquifer as function of time.
+        sw4 (Optional[Literal[0, 1]]): An extra groundwater flux can be
+            specified which is added to above specified flux.
+
+            * 0: No extra flux.
+            * 1: Extra flux.
+                    **Activates**: [`qbot4`]
+
+        qbot4 (Optional[QBOT4]): Table with extra bottom flux data.
 
         swqhbot (Optional[Literal[1, 2]]): Specify whether an exponential
             relation or a table is used.
 
-            * 1 - bottom flux is calculated with an exponential relation
-            * 2 - bottom flux is derived from a table
+            * 1: Bottom flux is calculated with an exponential relation.
+                    **Activates**: [`cofqha`, `cofqhb`, `cofqhc`]
+            * 2: Bottom flux is derived from a table.
+                    **Activates**: [`qtab`]
 
-        bbcfil (Optional[String]): Name of file with bottom boundary data
-            (without .BBC extension).
-        sinave (Optional[Decimal2f]): Average value of bottom flux.
-        sinamp (Optional[Decimal2f]): Amplitude of bottom flux sine function.
-        sinmax (Optional[Decimal2f]): Time of the year with maximum bottom flux.
-        shape (Optional[Decimal2f]): Shape factor to derive average groundwater
-            level.
-        hdrain (Optional[Decimal2f]): Mean drain base to correct for average
-            groundwater level.
-        rimlay (Optional[Decimal2f]): Vertical resistance of aquitard.
-        aqave (Optional[Decimal2f]): Average hydraulic head in underlaying
-            aquifer.
-        aqamp (Optional[Decimal2f]): Amplitude hydraulic head sinus wave.
-        aqtmax (Optional[Decimal2f]): First time of the year with maximum
-            hydraulic head.
-        aqper (Optional[Decimal2f]): Period of hydraulic head sinus wave.
-        cofqha (Optional[Decimal2f]): Coefficient A for exponential relation for
-            bottom flux.
-        cofqhb (Optional[Decimal2f]): Coefficient B for exponential relation for
-            bottom flux.
-        cofqhc (Optional[Decimal2f]): Coefficient C for exponential relation for
-            bottom flux.
-        gwlevel (Optional[Table]): Table with groundwater level data.
-        qbot (Optional[Table]): Table with bottom flux data.
-        haquif (Optional[Table]): Table with average pressure head in
-            underlaying aquifer.
-        qbot4 (Optional[Table]): Table with bottom flux data.
-        qtab (Optional[Table]): Table with groundwater level-bottom
+        cofqha (Optional[float]): Coefficient A for exponential relation for
+            bottom flux [-100..100, cm/d].
+        cofqhb (Optional[float]): Coefficient B for exponential relation for
+            bottom flux [-1..1, 1/cm].
+        cofqhc (Optional[float]): Water flux (positive upward) in addition to
+            flux from exponential relation [-10..10, cm/d].
+        qtab (Optional[QTAB]): Table with groundwater level-bottom
             flux relation.
-        hbot5 (Optional[Table]): Table with the bottom compartment
+        hbot5 (Optional[HBOT5]): Table with the bottom compartment
             pressure head.
     """
 

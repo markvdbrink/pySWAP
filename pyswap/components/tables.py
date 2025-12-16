@@ -735,9 +735,10 @@ class DETAILEDRAINFALL(BaseTableModel):
 
 
 class RAINFLUX(BaseTableModel):
-    """
-    Mean rainfall intensity as function of Julian time.
+    """Mean rainfall intensity as function of Julian time.
+
     Maximum of 30 records allowed.
+
     Attributes:
         TIME (Series[float]): day of the year
         RAINFLUX (Series[float]): rainfall in mm d^-1.
