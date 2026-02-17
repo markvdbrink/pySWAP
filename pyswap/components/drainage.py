@@ -71,33 +71,34 @@ __all__ = [
 class Flux(_PySWAPBaseModel, _SerializableMixin, _YAMLValidatorMixin):
     """Fluxes between drainage levels in .dra file.
 
-    !!! note
+    !!! Note:
 
-        This was rewritten to be a single class instead of a list of classes.
-        Simplicity over DRY. Anyway, the prefered way to set this up would be
-        through the table from the extended section I guess.
+        This is a single class containing the variables of each of the five
+        drainage layers. Add a suffix with the number of the level you want to
+        specify behind the variable (e.g. `drares1`, `swallo2`, etc.).
 
     Attributes:
-        drares (float): Drainage resistance [10 .. 1e5 d].
-        infres (float): Infiltration resistance [10 .. 1e5 d].
+        drares (float): Drainage resistance [10..1e5, d].
+        infres (float): Infiltration resistance [10..1e5, d].
         swallo (Literal[1, 2]): Switch to allow drainage from this level.
 
             * 1: Drainage and infiltration are both allowed.
             * 2: Only infiltration is allowed.
             * 3: Only drainage is allowed.
 
-        l (Optional[float]): Drain spacing [1 .. 1e5 m].
-        zbotdr (float): Level of the bottom of the drain [-1e4 .. 0 cm].
-        swdtyp (Literal[1, 2]): Drainage type.
+        l (Optional[float]): Drain spacing (only if swdivd in DraFile equals 1) [1..1e5, m].
+        zbotdr (Optional[float]): Level of the bottom of the drain (only if
+            swdivd in DraFile equals 1) [-1e4..0, cm].
+        swdtyp (Optional[Literal[1, 2]]): Type of drainage medium.
 
-            * 1: drain tube.
-            * 2: open channel.
+            * 1: Drain tube.
+            * 2: Open channel.
 
-        datowltb (Table): date DATOWL [date] and channel water
-            level LEVEL. Add suffix to the dataframe headers
-            according to the level number.
+        datowltb (Optional[DATOWL]): Table with channel water level as function
+            of date. Add suffix to the table according to the level number (e.g. `DATOWL1`).
     """
 
+    # level 1
     drares1: float | None = _Field(default=None, ge=10.0, le=1.0e5)
     infres1: float | None = _Field(default=None, ge=10.0, le=1.0e5)
     swallo1: _Literal[1, 2, 3] | None = None
@@ -142,6 +143,13 @@ class Flux(_PySWAPBaseModel, _SerializableMixin, _YAMLValidatorMixin):
 class DraFile(_PySWAPBaseModel, _FileMixin, _SerializableMixin):
     """Content of the drainage file (.dra).
 
+    !!! Note:
+
+        This class currently combines the basic drainage and surface water management
+        routines and thus contains all the parameters of both methods. Please look
+        at the documentation of the `Drainage` object which parameters need specification
+        for each method.
+
     Attributes:
         swdivd (Literal[1, 2]): Calculate vertical distribution of
             drainage flux in groundwater:
@@ -162,13 +170,6 @@ class DraFile(_PySWAPBaseModel, _FileMixin, _SerializableMixin):
             * 3: Use drainage/infiltration resistance, multi-level if needed.
                     **Activates**: [`nrlevs`, `swintfl`, `swtopnrsrf`, `fluxes`]
 
-        swdislay (Literal[0, 1, 2]): Switch to adjust
-            upper boundary of model discharge layer.
-
-            * 0: No adjustment
-            * 1: Adjustment based on depth of top of model discharge
-            * 2: Adjustment based on factor of top of model discharge
-        drainageleveltopparams
 
         lm1 (Optional[float]): Drain spacing [1..1000, m]
         qdrntb (Optional[QDRNTB]): Table with relation between drainage flux and groundwater level.
@@ -189,9 +190,12 @@ class DraFile(_PySWAPBaseModel, _FileMixin, _SerializableMixin):
             * 5: In the upper, more fine soil layer
                     **Activates**: [`khbot`, `zintf`, `kvtop`, `kvbot`, `geofac`]
 
-        basegw (Optional[float]): Level of impervious layer below soil surface (negative)[-1e4..0, cm].
-        khtop (Optional[float]): Horizontal hydraulic conductivity of the top layer [0..1000, cm/d].
-        khbot (Optional[float]): Horizontal hydraulic conductivity of the bottom layer [0..1000, cm/d]
+        basegw (Optional[float]): Level of impervious layer below soil surface
+            (negative) [-1e4..0, cm].
+        khtop (Optional[float]): Horizontal hydraulic conductivity of the top
+            layer [0..1000, cm/d].
+        khbot (Optional[float]): Horizontal hydraulic conductivity of the bottom
+            layer [0..1000, cm/d]
         zintf (Optional[float]): Interface level of the coarse and
             fine soil layer [-1e4..0, cm].
         kvtop (Optional[float]): Vertical hydraulic conductivity of
@@ -200,60 +204,84 @@ class DraFile(_PySWAPBaseModel, _FileMixin, _SerializableMixin):
             the bottom layer [0..1000, cm/d].
         geofac (Optional[float]): Geometric factor of Ernst [0..100, -].
         nrlevs (Optional[int]): Number of drainage levels [1..5, -].
-        swintfl (Optional[Literal[0, 1]]): Option for interflow in highest drainage level (shallow system with short residence time)
+        swtopnrsrf (Optional[Literal[0, 1]]): Switch to adjust the bottom of
+            model discharge layer. Only in case of lateral interflow (swdivdra=1)
+            or rapid discharge (swnrsrf=1 or swnrsrf=2).
+
+            * 0: No
+            * 1: Yes, the bottom of the highest order drainage system
+                represents the maximum depth of the interflow.
+
+        swintfl (Optional[Literal[0, 1]]): Option for interflow in highest
+            drainage level (shallow system with short residence time)
 
             * 0: No
             * 1: Yes
                     **Activates**: [`cofintflb`, `expintflb`]
 
-        cofintflb (Optional[float]): Coefficient for interflow relation.
-        expintflb (Optional[float]): Exponent for interflow relation.
-        swtopnrsrf (Literal[0, 1]): Switch to enable adjustment of model discharge layer.
-
-            * 0: No
-            * 1: Yes, the bottom of the highest order drainage system (zbordr(numdrain))
-                represents the maximum depth of the interflow.
-
+        cofintflb (Optional[float]): Coefficient for interflow relation [1e-2..10, d].
+        expintflb (Optional[float]): Exponent for interflow relation [0.1..1, -].
         fluxes (Optional[Flux]): Flux object containing parameters for each drainage level.
 
-    Attributes extended section (surface water management):
-        altcu (float): Altitude of the control unit relative to reference level.
-        nrsrf (int): Number of subsurface drainage levels.
-        drntb (DRNTB): Table with physical characteristics of each subsurface drainage level
+        altcu (float): Altitude of the control unit relative to reference level [-3e5..3e5, cm].
+        nrsrf (int): Number of subsurface drainage levels [1..5, -].
+        drntb (DRNTB): Table with physical characteristics of each subsurface drainage level.
         swnrsrf (Literal[0, 1, 2]): Switch to introduce rapid subsurface drainage
 
             * 0: No rapid drainage
-            * 1: Rapid drainage in the highest drainage system (implies adjustment of RDRAIN of highest drainage system)
+            * 1: Rapid drainage in the highest drainage system
+                (implies adjustment of RDRAIN of highest drainage system)
                     **Activates**: [`rsurfdeep`, `rsurfshallow`]
-            * 2: Rapid drainage as interflow according to a power relation (implies adjustment of RDRAIN of highest drainage system)
+            * 2: Rapid drainage as interflow according to a power relation
+                (implies adjustment of RDRAIN of highest drainage system)
+                    **Activates**: [`cofintfl`, `expintfl`]
 
-        rsurfdeep (Optional[float]): Maximum resistance of rapid subsurface drainage.
-        rsurfshallow (Optional[float]): Minimum resistance of rapid subsurface drainage.
+        rsurfdeep (Optional[float]): Maximum resistance of rapid subsurface drainage [1e-3..1e3, d].
+        rsurfshallow (Optional[float]): Minimum resistance of rapid subsurface drainage [1e-3..1e3, d].
+        cofintfl (Optional[float]): Coefficient for interflow relation [0.01..10, 1/d].
+        expintfl (Optional[float]): Exponent for interflow relation [0.1..1, -].
         swsrf (Literal[1, 2, 3]): Switch for interaction with surface water system
 
-            * 1: No interaction with surface water system
-            * 2: Surface water system is simulated without separate primary system
-            * 3: Surface water system is simulated with separate primary system
+            * 1: No interaction with surface water system.
+            * 2: Surface water system is simulated without separate primary system.
+                    **Activates**: [`swsec`]
+            * 3: Surface water system is simulated with separate primary system.
+                    **Activates**: [`swsec`, `priwatlvl`]
 
         swsec (Optional[Literal[1, 2]]): Option for surface water level of secondary system
 
-            * 1: Surface water level is input
+            * 1: Surface water level is input.
+                     **Activates**: [`secwatlvl`]
             * 2: Surface water level is simulated
+                     **Activates**: [`wlact`, `osswlm`, `nmper`, `mansecwatlvl`, `swqhr`]
 
-        secwatlvl (Optional[]): Table with water level in secondary course as function of date
-        wlact (Optional[float]): Initial surface water level.
-        osswlm (Optional[float]): Criterium for warning about oscillation.
-        nmper (Optional[int]): Number of management periods.
-        mansecwatlvl
+
+        secwatlvl (Optional[SECWATLVL]): Table with water level in secondary course as function of date.
+        wlact (Optional[float]): Initial surface water level [altcu-1000..altcu, cm].
+        osswlm (Optional[float]): Criterium for warning about oscillation [0..10, cm].
+        nmper (Optional[int]): Number of management periods [1..10, -].
+        mansecwatlvl (Optional[MANSECWATLVL]): Table with parameters for each management period.
         swqhr (Optional[Literal[1, 2]]): Switch for type of discharge relationship.
 
             * 1: Exponential relationship
+                    **Activates**: [`sofcu`, `qweir`]
             * 2: Table
+                    **Activates**: [`qweirtb`]
 
-        sofcu (Optional[float]): Size of the control unit.
-        qweir
-        qweirtb
-        priwatlvl
+        sofcu (Optional[float]): Size of the control unit [0.1..1e5, ha].
+        qweir (Optional[QWEIR]): Table with parameters exponential weir discharge for all management periods.
+        qweirtb (Optional[QWEIRTB]): Table with parameters of weir discharge for all management periods.
+        priwatlvl (Optional[PRIWATLVL]): Table with water level in primary water course.
+        swdislay (Literal[0, 1, 2]): Switch to adjust upper boundary of each model discharge layer.
+
+            * 0: No adjustment.
+            * 1: Adjustment based on depth of top of model discharge.
+                    **Activates**: [`drainageleveltopparams`]
+            * 2: Adjustment based on factor of top of model discharge.
+                    **Activates**: [`drainageleveltopparams`]
+
+        drainageleveltopparams(Optional[DRAINAGELEVELTOPPARAMS]): Table to adjust
+            the top of each drainage level.
     """
 
     _extension = _PrivateAttr("dra")
@@ -263,10 +291,10 @@ class DraFile(_PySWAPBaseModel, _FileMixin, _SerializableMixin):
     cofani: _FloatList | None = None
     swdislay: _Literal[0, 1, 2, 3] | None = None
     drainageleveltopparams: _Table | None = None
-    # Drainage flux table
+    # Drainage method 1: flux table
     lm1: float | None = _Field(default=None, ge=1.0, le=1000.0)
     qdrntb: _Table | None = None
-    # Drainage formula
+    # Drainage method 2: formula
     lm2: float | None = _Field(default=None, ge=1.0, le=1000.0)
     shape: float | None = _Field(default=None, **_UNITRANGE)
     wetper: float | None = _Field(default=None, ge=0.0, le=1000.0)
@@ -280,14 +308,14 @@ class DraFile(_PySWAPBaseModel, _FileMixin, _SerializableMixin):
     kvtop: float | None = _Field(default=None, ge=0.0, le=1000.0)
     kvbot: float | None = _Field(default=None, ge=0.0, le=1000.0)
     geofac: float | None = _Field(default=None, ge=0.0, le=100.0)
-    # Drainage infiltration resistance
+    # Drainage method 3: infiltration resistance
     nrlevs: int | None = _Field(default=None, ge=1, le=5)
     swintfl: _Literal[0, 1] | None = None
     cofintflb: float | None = _Field(default=None, ge=0.01, le=10.0)
     expintflb: float | None = _Field(default=None, ge=0.1, le=1.0)
     swtopnrsrf: _Literal[0, 1] | None = None
     fluxes: _Subsection | None = None
-    # Extended section
+    # Extended section: surface water management
     altcu: float | None = _Field(default=None, ge=-300000.0, le=300000.0)
     drntb: _Table | None = None
     nrsrf: int | None = _Field(default=None, ge=1, le=5)
@@ -321,9 +349,11 @@ class Drainage(_PySWAPBaseModel, _SerializableMixin, _YAMLValidatorMixin):
         swdra (Literal[0, 1, 2]): Switch for lateral drainage.
 
             * 0: No drainage.
-            * 1: Simulate with a basic drainage routine.
+            * 1: Simulate with a basic drainage routine. Specify `swdivd` and
+                `dramet` and associated parameters in the `drafile`.
                     **Activates**: [`drafile`]
-            * 2: Simulate with surface water management.
+            * 2: Simulate with surface water management. Specify `altcu`,
+                `nrsrf`, `drntb`, `swnrsrf` and `swdislay`.
                     **Activates**: [`drafile`]
 
         drfil (str): Name of the file. This attribute is frozen, there is no

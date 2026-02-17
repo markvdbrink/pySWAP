@@ -342,11 +342,11 @@ class CropDevelopmentSettingsFixed(_CropDevelopmentSettings):
                     **Activates**: [`tsumea`, `tsumam`, `tbase`]
 
         lcc (Optional[int]): Duration of the crop growing period [1..366, day]
-        tsumea (Optional[float]): Temperature sum from emergence to anthesis [0..1e4 degrees C].
-        tsumam (Optional[float]): Temperature sum from anthesis to maturity [1..1e4 degrees C].
-        tbase (Optional[float]): Start value of temperature sum [-10..30 degrees C].
-        kdif (float): Extinction coefficient for diffuse visible light [0..2 -].
-        kdir (float): Extinction coefficient for direct visible light [0..2 -].
+        tsumea (Optional[float]): Temperature sum from emergence to anthesis [0..1e4, °C].
+        tsumam (Optional[float]): Temperature sum from anthesis to maturity [1..1e4, °C].
+        tbase (Optional[float]): Start value of temperature sum [-10..30, °C].
+        kdif (float): Extinction coefficient for diffuse visible light [0..2, -].
+        kdir (float): Extinction coefficient for direct visible light [0..2, -].
         swgc (Literal[1, 2]): Choose between Leaf Area Index or Soil Cover Fraction
 
             * 1: Leaf Area Index.

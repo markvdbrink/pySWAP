@@ -141,21 +141,22 @@ crop_tables = [
 
 
 class DATEHARVEST(BaseTableModel):
-    """Date of harvest
+    """Table with harvest dates.
 
     Attributes:
-        DATEHARVEST (Series[pa.DateTime]): Date of harvest.
+        DATEHARVEST (Series[pa.DateTime]): Date of harvest [yyyy-mm-dd].
     """
 
     DATEHARVEST: Series[pa.DateTime]
 
 
 class RDTB(BaseTableModel):
-    """Rooting Depth [0..1000 cm, R], as a function of development stage [0..2 -, R].
+    """Table with crop rooting depth as a function of development stage or day number.
 
     Attributes:
-        DVS (Series[float]): Development stage of the crop.
-        RD (Series[float]): Rooting depth of the crop.
+        DVS (Series[float]): Development stage of the crop [0..2, -].
+        DNR (Series[float]): Day of the year [0..366, -].
+        RD (Series[float]): Rooting depth of the crop [0..1000, cm].
     """
 
     DVS: Series[float] | None = pa.Field(**DVSRANGE)
@@ -164,11 +165,11 @@ class RDTB(BaseTableModel):
 
 
 class RDCTB(BaseTableModel):
-    """List root density [0..100 cm/cm3, R] as function of relative rooting depth [0..1 -, R]
+    """Table with root density as function of relative rooting depth.
 
     Attributes:
-        RRD (Series[float]): Relative rooting depth of the crop.
-        RDENS (Series[float]): Root density of the crop.
+        RRD (Series[float]): Relative rooting depth of the crop [0..1 -].
+        RDENS (Series[float]): Root density of the crop [0..100, cm/cm^3].
 
     """
 
@@ -177,12 +178,12 @@ class RDCTB(BaseTableModel):
 
 
 class GCTB(BaseTableModel):
-    """Leaf Area Index or Soil Cover Fraction as function of development stage.
+    """Table with Leaf Area Index or Soil Cover Fraction as function of development stage.
 
     Attributes:
         DVS (Series[float]): Development stage of the crop [0..2, -].
-        LAI (Series[float]): Leaf Area Index of the crop [0..12, (m2 leaf)/(m2 soil)]
-        SCF (Series[float]): Soil Cover Fraction [0..1, (m2 cover)/(m2 soil)]
+        LAI (Series[float]): Leaf Area Index of the crop [0..12, (m^2 leaf)/(m^2 soil)]
+        SCF (Series[float]): Soil Cover Fraction [0..1, (m^2 cover)/(m^2 soil)]
     """
 
     DVS: Series[float] = pa.Field(**DVSRANGE)
@@ -191,12 +192,12 @@ class GCTB(BaseTableModel):
 
 
 class CFTB(BaseTableModel):
-    """Crop factor [0..2 [-], R], as function of dev. stage [0..2 -, R]
+    """Table with crop factor as function of development stage or day number.
 
     Attributes:
-        DVS (Series[float]): Development stage of the crop.
-        DNR (Series[float]): Day number.
-        CF (Series[float]): Crop factor.
+        DVS (Series[float]): Development stage of the crop [0..2, -].
+        DNR (Series[float]): Day number [0..366, -].
+        CF (Series[float]): Crop factor [0..2, -].
     """
 
     DVS: Series[float] | None = pa.Field(**DVSRANGE)
@@ -205,32 +206,32 @@ class CFTB(BaseTableModel):
 
 
 class CHTB(BaseTableModel):
-    """Crop Height [0..1.d4 cm, R], as function of dev. stage [0..2 -, R]
+    """Crop height as function of development stage or day number.
 
     Attributes:
-        DVS (Series[float]): Development stage of the crop.
-        DNR (Series[float]): Day number.
-        CH (Series[float]): Crop height.
+        DVS (Series[float]): Development stage of the crop [0..2, -].
+        DNR (Series[float]): Day number [0..366, -].
+        CH (Series[float]): Crop height [0..1e4, cm].
     """
 
     DVS: Series[float] | None = pa.Field(**DVSRANGE)
     DNR: Series[float] | None = pa.Field(**YEARRANGE)
-    CF: (
-        Series[float] | None
-    )  # Added for compatibility with example grass files in original SWAP distribution that are used for testing this package. CF is only stated but not used there.
+    # Added CF for compatibility with example grass files in original SWAP
+    # distribution that are used for testing this package. CF is only stated but not used there.
+    CF: Series[float] | None
     CH: Series[float] | None
 
 
 class INTERTB(BaseTableModel):
-    """Interception parameters for closed forest canopies (SWINTER=2).
+    """Table with interception parameters for closed forest canopies.
 
     Attributes:
-        T (Series[int]): Time [0..366 d, R].
-        PFREE (Series[float]): Free throughfall coefficient [0..1 -, R].
-        PSTEM (Series[float]): Stem flow coefficient [0..1 -, R].
-        SCANOPY (Series[float]): Storage capacity of canopy [0..10 cm, R].
-        AVPREC (Series[float]): Average rainfall intensity [0..100 cm/d, R].
-        AVEVAP (Series[float]): Average evaporation intensity during rainfall from a wet canopy [0..10 cm/d, R].
+        T (Series[int]): Day of the year [0..366, d].
+        PFREE (Series[float]): Free throughfall coefficient [0..1, -].
+        PSTEM (Series[float]): Stem flow coefficient [0..1, -].
+        SCANOPY (Series[float]): Storage capacity of canopy [0..10, cm].
+        AVPREC (Series[float]): Average rainfall intensity [0..100, cm/d].
+        AVEVAP (Series[float]): Average evaporation intensity during rainfall from a wet canopy [0..10, cm/d].
     """
 
     T: Series[float] = pa.Field(ge=0, le=366)
@@ -242,11 +243,11 @@ class INTERTB(BaseTableModel):
 
 
 class KYTB(BaseTableModel):
-    """Yield response factor [0..5 -, R], as function of dev. stage [0..2 -, R]
+    """Table with yield response factor as function of development stage.
 
     Attributes:
-        DVS (Series[float]): Development stage of the crop.
-        KY (Series[float]): Yield response factor of the crop.
+        DVS (Series[float]): Development stage of the crop [0..2, -].
+        KY (Series[float]): Yield response factor of the crop [0..5, -].
     """
 
     DVS: Series[float] = pa.Field(**DVSRANGE)
@@ -254,11 +255,11 @@ class KYTB(BaseTableModel):
 
 
 class MRFTB(BaseTableModel):
-    """Ratio root total respiration / maintenance respiration [1..5.0 -, R]
+    """Ratio total root respiration to maintenace respiration.
 
     Attributes:
-        DVS (Series[float]): Development stage of the crop.
-        MAX_RESP_FACTOR (Series[float]): Ratio root total respiration / maintenance respiration.
+        DVS (Series[float]): Development stage of the crop [0..2, -].
+        MAX_RESP_FACTOR (Series[float]): Ratio root total respiration with maintenance respiration [1..5, -].
     """
 
     DVS: Series[float] = pa.Field(**DVSRANGE)
@@ -266,11 +267,11 @@ class MRFTB(BaseTableModel):
 
 
 class WRTB(BaseTableModel):
-    """dry weight of roots at soil surface [0..10 kg/m3, R], as a function of development stage [0..2 -,R]
+    """Table with dry weight of roots at soil surface as function of development stage.
 
     Attributes:
-        DVS (Series[float]): Development stage of the crop.
-        W_ROOT_SS (Series[float]): Dry weight of roots at soil surface.
+        DVS (Series[float]): Development stage of the crop  [0..2, -].
+        W_ROOT_SS (Series[float]): Dry weight of roots at soil surface [0..10, kg/m3].
     """
 
     DVS: Series[float] = pa.Field(**DVSRANGE)
@@ -278,17 +279,17 @@ class WRTB(BaseTableModel):
 
 
 class CROPROTATION(BaseTableModel):
-    """Crop rotation settings
+    """Table with crop rotation settings.
 
     Attributes:
-        CROPSTART (Series[pa.DateTime]): Start date of the crop.
-        CROPEND (Series[pa.DateTime]): End date of the crop.
+        CROPSTART (Series[pa.DateTime]): Start date of the crop [dd-mmm-yyyy] (e.g. 01-jan-2000).
+        CROPEND (Series[pa.DateTime]): End date of the crop [dd-mmm-yyyy] (e.g. 01-jan-2000)..
         CROPFIL (Series[str]): Crop file name.
-        CROPTYPE (Series[int]): Crop module type
+        CROPTYPE (Series[int]): Crop module type:
 
-            * 1 - simple
-            * 2 - detailed, WOFOST general
-            * 3 - detailed, WOFOST grass
+            * 1: Simple
+            * 2: WOFOST general
+            * 3: WOFOST grass
     """
 
     CROPSTART: Series[pa.DateTime]
@@ -299,7 +300,7 @@ class CROPROTATION(BaseTableModel):
 
 # WOFOST-specific tables
 class DTSMTB(BaseTableModel):
-    """Increase in temperature sum as function of daily average temperature.
+    """Table with increase in temperature sum as function of daily average temperature.
 
     Attributes:
         TAV (Series[float]): Daily average temperature [0..100, °C].
@@ -311,11 +312,11 @@ class DTSMTB(BaseTableModel):
 
 
 class VERNTB(BaseTableModel):
-    """Rate of vernalisation as function of average air temperature
+    """Table with rate of vernalisation as function of average air temperature.
 
     Attributes:
-        TAV (Series[float]): Daily average temperature [°C].
-        ROV (Series[float]): Rate of vernalisation [d].
+        TAV (Series[float]): Daily average temperature [?..?, °C].
+        ROV (Series[float]): Rate of vernalisation [?..?, /d].
     """
 
     TAV: Series[float]
@@ -323,11 +324,12 @@ class VERNTB(BaseTableModel):
 
 
 class SLATB(BaseTableModel):
-    """Specific leaf area [0..1 ha/kg, R] as function of crop development stage [0..2 -, R]
+    """Table with specific leaf area as function of crop development stage or day number.
 
     Attributes:
-        DVS (Series[float]): Development stage of the crop.
-        SLA (Series[float]): Leaf area.
+        DVS (Series[float]): Development stage of the crop [0..2, -].
+        DNR (Series[float]): Day number [0..366, -].
+        SLA (Series[float]): Leaf area [0..1, ha/kg].
     """
 
     DVS: Series[float] | None = pa.Field(**DVSRANGE)
@@ -336,11 +338,12 @@ class SLATB(BaseTableModel):
 
 
 class AMAXTB(BaseTableModel):
-    """maximum CO2 assimilation rate [0..100 kg/ha/hr, R] as function of development stage [0..2 -, R]
+    """Table with maximum CO2 assimilation rate as function of development stage or day number.
 
     Attributes:
-        DVS (Series[float]): Development stage of the crop.
-        AMAX (Series[float]): Maximum CO2 assimilation rate.
+        DVS (Series[float]): Development stage of the crop [0..2, -].
+        DNR (Series[float]): Day number [0..366, -].
+        AMAX (Series[float]): Maximum CO2 assimilation rate [0..100, kg/ha/hr].
     """
 
     DVS: Series[float] | None = pa.Field(**DVSRANGE)
@@ -349,11 +352,11 @@ class AMAXTB(BaseTableModel):
 
 
 class TMPFTB(BaseTableModel):
-    """reduction factor of AMAX [-, R] as function of average day temperature [-10..50 oC, R]
+    """Table with the reduction the maximum CO2 assimilation rate as function of average day temperature.
 
     Attributes:
-        TAVD (Series[float]): Minimum temperature.
-        TMPF (Series[float]): Reduction factor of AMAX.
+        TAVD (Series[float]): Average day temperature [-10..50, °C].
+        TMPF (Series[float]): Reduction factor of maximum CO2 assimilation rate [0..1, -].
     """
 
     TAVD: Series[float] = pa.Field(ge=-10.0, le=50.0)
@@ -361,11 +364,11 @@ class TMPFTB(BaseTableModel):
 
 
 class TMNFTB(BaseTableModel):
-    """reduction factor of AMAX [-, R] as function of minimum day temperature [-10..50 oC, R]
+    """Table with the reduction the maximum CO2 assimilation rate as function of minimum day temperature.
 
     Attributes:
-        TMNR (Series[float]): Minimum temperature.
-        TMNF (Series[float]): Reduction factor of AMAX.
+        TMNR (Series[float]): Minimum day temperature [-10..50, °C].
+        TMNF (Series[float]): Reduction factor of maximum CO2 assimilation rate [0..1, -].
     """
 
     TMNR: Series[float] = pa.Field(ge=-10.0, le=50.0)
@@ -373,11 +376,12 @@ class TMNFTB(BaseTableModel):
 
 
 class RFSETB(BaseTableModel):
-    """reduction factor of senescence [-, R] as function of development stage [0..2 -, R]
+    """Table with reduction factor of senescence as function of development stage or day number.
 
     Attributes:
-        DVS (Series[float]): Development stage of the crop.
-        RFSE (Series[float]): Reduction factor of senescence.
+        DVS (Series[float]): Development stage of the crop [0..2, -].
+        DNR (Series[float]): Day number [0..366, -].
+        RFSE (Series[float]): Reduction factor of senescence [0..1, -].
     """
 
     DVS: Series[float] | None = pa.Field(**DVSRANGE)
@@ -386,11 +390,12 @@ class RFSETB(BaseTableModel):
 
 
 class FRTB(BaseTableModel):
-    """fraction of total dry matter increase partitioned to the roots [kg/kg, R]
+    """Table with fraction of total dry matter increase partitioned to the roots.
 
     Attributes:
-        DVS (Series[float]): Development stage of the crop.
-        FR (Series[float]): Fraction of total dry matter increase partitioned to the roots.
+        DVS (Series[float]): Development stage of the crop [0..2, -].
+        DNR (Series[float]): Day number [0..366, -].
+        FR (Series[float]): Fraction of total dry matter increase partitioned to the roots [0..1, kg/kg].
     """
 
     DVS: Series[float] | None = pa.Field(**DVSRANGE)
@@ -399,11 +404,12 @@ class FRTB(BaseTableModel):
 
 
 class FLTB(BaseTableModel):
-    """fraction of total above ground dry matter increase partitioned to the leaves [kg/kg, R]
+    """Table with fraction of total above ground dry matter increase partitioned to the leaves
 
     Attributes:
-        DVS (Series[float]): Development stage of the crop.
-        FL (Series[float]): Fraction of total above ground dry matter increase partitioned to the leaves.
+        DVS (Series[float]): Development stage of the crop [0..2, -].
+        DNR (Series[float]): Day number [0..366, -].
+        FL (Series[float]): Fraction of total above ground dry matter increase partitioned to the leaves [0..1, kg/kg].
     """
 
     DVS: Series[float] | None = pa.Field(**DVSRANGE)
@@ -412,11 +418,12 @@ class FLTB(BaseTableModel):
 
 
 class FSTB(BaseTableModel):
-    """fraction of total above ground dry matter increase partitioned to the stems [kg/kg, R]
+    """Table with fraction of total above ground dry matter increase partitioned to the stems.
 
     Attributes:
-        DVS (Series[float]): Development stage of the crop.
-        FS (Series[float]): Fraction of total above ground dry matter increase partitioned to the stems.
+        DVS (Series[float]): Development stage of the crop [0..2, -].
+        DNR (Series[float]): Day number [0..366, -].
+        FS (Series[float]): Fraction of total above ground dry matter increase partitioned to the stems [0..1, kg/kg].
     """
 
     DVS: Series[float] | None = pa.Field(**DVSRANGE)
@@ -425,11 +432,11 @@ class FSTB(BaseTableModel):
 
 
 class FOTB(BaseTableModel):
-    """fraction of total above ground dry matter increase partitioned to the storage organs [kg/kg, R]
+    """Table with fraction of total above ground dry matter increase partitioned to the storage organs.
 
     Attributes:
-        DVS (Series[float]): Development stage of the crop.
-        FO (Series[float]): Fraction of total above ground dry matter increase partitioned to the storage organs.
+        DVS (Series[float]): Development stage of the crop [0..2, -].
+        FO (Series[float]): Fraction of total above ground dry matter increase partitioned to the storage organs [0..1, kg/kg].
     """
 
     DVS: Series[float] = pa.Field(**DVSRANGE)
@@ -437,11 +444,11 @@ class FOTB(BaseTableModel):
 
 
 class RDRRTB(BaseTableModel):
-    """relative death rates of roots [kg/kg/d] as function of development stage [0..2 -, R]
+    """Table with relative death rates of roots as function of development stage.
 
     Attributes:
-        DVS (Series[float]): Development stage of the crop.
-        RDRR (Series[float]): Relative death rates of roots.
+        DVS (Series[float]): Development stage of the crop [0..2, -].
+        RDRR (Series[float]): Relative death rates of roots [0..?, kg/kg/d].
     """
 
     DVS: Series[float] | None = pa.Field(**DVSRANGE)
@@ -450,60 +457,16 @@ class RDRRTB(BaseTableModel):
 
 
 class RDRSTB(BaseTableModel):
-    """relative death rates of stems [kg/kg/d] as function of development stage [0..2 -, R]
+    """Talbe with relative death rates of stems as function of development stage.
 
     Attributes:
-        DVS (Series[float]): Development stage of the crop.
-        RDRS (Series[float]): Relative death rates of stems.
+        DVS (Series[float]): Development stage of the crop  [0..2, -].
+        RDRS (Series[float]): Relative death rates of stems [0..?, kg/kg/d].
     """
 
     DVS: Series[float] | None = pa.Field(**DVSRANGE)
     DNR: Series[float] | None = pa.Field(**YEARRANGE)
     RDRS: Series[float] = pa.Field(ge=0.0)
-
-
-class DMGRZTB(BaseTableModel):
-    """threshold of above ground dry matter [0..1d6 kg DM/ha, R] to trigger grazing as function of daynumber [1..366 d, R]
-
-    Attributes:
-        DNR (Series[float]): Day number.
-        DMGRZ (Series[float]): Dry matter growth rate of roots.
-    """
-
-    DNR: Series[float] = pa.Field(**YEARRANGE)
-    DMGRZ: Series[float] = pa.Field(ge=0.0, le=1.0e6)
-
-
-class LSDATB(BaseTableModel):
-    """Actual livestock density of each grazing period
-
-    !!! note
-
-        total number of periods should be equal to number of periods in SEQGRAZMOW
-
-    Attributes:
-        SEQNR (Series[int]): number of the sequence period with mowing/grazing [0..366 d, I]
-        LSDA (Series[float]): Actual Live Stock Density of the grazing period [0.0..1000.0 LS/ha, R]
-    """
-
-    SEQNR: Series[int] = pa.Field(**YEARRANGE)
-    LSDA: Series[float] = pa.Field(ge=0.0, le=1000.0)
-
-
-class LSDBTB(BaseTableModel):
-    """Relation between livestock density, number of grazing days and dry matter uptake
-
-    Attributes:
-        LSDB (Series[float]): Basic Live Stock Density [0.0..1000.0 LS/ha, R]
-        DAYSGRAZING (Series[float]): Maximum days of grazing [0.0..366.0 d, R]
-        UPTGRAZING (Series[float]): Dry matter uptake by grazing [0.0..1000.0 kg/ha, R] (kg/ha DM)
-        LOSSGRAZING (Series[float]): Dry matter loss during grazing due to droppings and treading [0.0..1000.0 kg/ha, R] (kg/ha DM)
-    """
-
-    LSDb: Series[float] = pa.Field(ge=0.0, le=1000.0)
-    DAYSGRAZING: Series[float] = pa.Field(**YEARRANGE)
-    UPTGRAZING: Series[float] = pa.Field(ge=0.0, le=1000.0)
-    LOSSGRAZING: Series[float] = pa.Field(ge=0.0, le=1000.0)
 
 
 class RLWTB(BaseTableModel):
@@ -518,17 +481,94 @@ class RLWTB(BaseTableModel):
     RL: Series[float] = pa.Field(ge=0.0, le=5000.0)
 
 
-class DMMOWTB(BaseTableModel):
-    """List threshold of above ground dry matter [0..1d6 kg DM/ha, R] to trigger mowing as function of daynumber [1..366 d, R]
+class CO2EFFTB(BaseTableModel):
+    """Correction factor light use efficiency for change in CO2 concentration."""
+
+    CO2PPM: Series[float]
+    FACTOR: Series[float]
+
+
+class CO2TRATB(BaseTableModel):
+    """Correction factor maximum transpiration rate for change in CO2 concentration."""
+
+    CO2PPM: Series[float]
+    FACTOR: Series[float]
+
+
+class CO2AMAXTB(BaseTableModel):
+    """Correction factor assimilation rate for change in CO2 concentration."""
+
+    CO2PPM: Series[float]
+    FACTOR: Series[float]
+
+
+# Tables of grassland management
+
+
+class DMGRZTB(BaseTableModel):
+    """Table with threshold of above ground dry matter to trigger grazing as function of daynumber.
+
+    Attributes:
+        DNR (Series[float]): Day number [1..366, d].
+        DMGRZ (Series[float]): Threshold of above ground dry matter to trigger grazing [0..1e6, kg DM/ha].
+    """
+
+    DNR: Series[float] = pa.Field(**YEARRANGE)
+    DMGRZ: Series[float] = pa.Field(ge=0.0, le=1.0e6)
+
+
+class LSDATB(BaseTableModel):
+    """Table with actual livestock density of each grazing period.
 
     !!! note
 
-        maximum 20 records
-
+        Total number of periods should be equal to number of periods in SEQGRAZMOW
 
     Attributes:
-        DNR (Series[float]): Day number.
-        DMMOW (Series[float]): threshold of above ground dry matter [0..1d6 kg DM/ha, R]
+        SEQNR (Series[int]): Number of the sequence period with mowing/grazing [0..366, d]
+        LSDA (Series[float]): Actual livestock (LS) density of the grazing period [0.0..1000.0, LS/ha]
+    """
+
+    SEQNR: Series[int] = pa.Field(**YEARRANGE)
+    LSDA: Series[float] = pa.Field(ge=0.0, le=1000.0)
+
+
+class LSDBTB(BaseTableModel):
+    """Table with relation between livestock density, number of grazing days and dry matter uptake
+
+    Attributes:
+        LSDB (Series[float]): Basic Live Stock Density [0..1000, LS/ha]
+        DAYSGRAZING (Series[float]): Maximum days of grazing [0..366, d]
+        UPTGRAZING (Series[float]): Dry matter uptake by grazing [0..1000, kg/ha]
+        LOSSGRAZING (Series[float]): Dry matter loss during grazing due to droppings and treading [0..1000, kg/ha]
+    """
+
+    LSDb: Series[float] | None = pa.Field(ge=0.0, le=1000.0)
+    LSDB: Series[float] | None = pa.Field(ge=0.0, le=1000.0)
+    DAYSGRAZING: Series[float] = pa.Field(**YEARRANGE)
+    UPTGRAZING: Series[float] = pa.Field(ge=0.0, le=1000.0)
+    LOSSGRAZING: Series[float] = pa.Field(ge=0.0, le=1000.0)
+
+    def __post_init__(self):
+        from warnings import warn
+
+        warn(
+            "The use of `LSDb` is deprecated and will be removed in a later version. Please use `LSDB`.",
+            FutureWarning,
+            stacklevel=4,
+        )
+
+
+class DMMOWTB(BaseTableModel):
+    """Table with thresholds of above ground dry matter to trigger mowing as function of daynumber.
+
+    !!! note
+
+        Maximum 20 records
+
+    Attributes:
+        DNR (Series[float]): Day number [1..366, d].
+        DMMOW (Series[float]): threshold of above ground dry matter [0..1e6, kg DM/ha]
     """
 
     DNR: Series[float] = pa.Field(**YEARRANGE)
@@ -536,11 +576,11 @@ class DMMOWTB(BaseTableModel):
 
 
 class DMMOWDELAY(BaseTableModel):
-    """Relation between dry matter harvest [0..1d6 kg/ha, R] and days of delay in regrowth [0..366 d, I] after mowing
+    """Table with relation between dry matter harvest and days of delay in regrowth after mowing.
 
     Attributes:
-        DMMOWDELAY (Series[float]): Dry matter harvest [0..1d6 kg/ha, R]
-        DAYDELAY (Series[int]): days of delay in regrowth [0..366 d, I]
+        DMMOWDELAY (Series[float]): Dry matter harvest [0..1e6, kg/ha].
+        DAYDELAY (Series[int]): Days of delay in regrowth [0..366, d].
     """
 
     DMMOWDELAY: Series[float] = pa.Field(ge=0.0, le=1.0e6)
@@ -548,11 +588,11 @@ class DMMOWDELAY(BaseTableModel):
 
 
 class LOSSGRZTB(BaseTableModel):
-    """Relation between pressure head and fraction of dry matter losses during grazing.
+    """Table with relation between pressure head and fraction of dry matter losses during grazing.
 
     Attributes:
         HGRZ (Series[float]): Pressure head [-1000..0, cm]
-        HLOSSGRZ (Series[float]): Fraction of dry matter loss [0.0..1.0, -]
+        HLOSSGRZ (Series[float]): Fraction of dry matter loss [0..1, -]
     """
 
     HGRZ: Series[float] = pa.Field(ge=1000, le=0)
@@ -560,15 +600,28 @@ class LOSSGRZTB(BaseTableModel):
 
 
 class LOSSMOWTB(BaseTableModel):
-    """Relation between pressure head and fraction of dry matter losses during mowing.
+    """Table with relation between pressure head and fraction of dry matter losses during mowing.
 
     Attributes:
         HMOW (Series[float]): Pressure head [-1000..0, cm]
-        HLOSSMOW (Series[float]): Fraction of dry matter loss [0.0..1.0, -]
+        HLOSSMOW (Series[float]): Fraction of dry matter loss [0..1, -]
     """
 
     HMOW: Series[float] = pa.Field(ge=1000, le=0)
     HLOSSMOW: Series[float] = pa.Field(**UNITRANGE)
+
+
+irrigation_tables = [
+    "IRRIGEVENTS",
+    "TC1TB",
+    "TC2TB",
+    "TC3TB",
+    "TC4TB",
+    "TC7TB",
+    "TC8TB",
+    "DC1TB",
+    "DC2TB",
+]
 
 
 class IRRIGEVENTS(BaseTableModel):
@@ -643,27 +696,6 @@ class DC2TB(BaseTableModel):
     FID: Series[float]
 
 
-class CO2EFFTB(BaseTableModel):
-    """Correction factor light use efficiency for change in CO2 concentration."""
-
-    CO2PPM: Series[float]
-    FACTOR: Series[float]
-
-
-class CO2TRATB(BaseTableModel):
-    """Correction factor maximum transpiration rate for change in CO2 concentration."""
-
-    CO2PPM: Series[float]
-    FACTOR: Series[float]
-
-
-class CO2AMAXTB(BaseTableModel):
-    """Correction factor assimilation rate for change in CO2 concentration."""
-
-    CO2PPM: Series[float]
-    FACTOR: Series[float]
-
-
 # %% ++++++++++++++++++++++++++++ METEO TABLES ++++++++++++++++++++++++++++
 
 meteo_tables = [
@@ -675,9 +707,7 @@ meteo_tables = [
 
 
 class DAILYMETEODATA(BaseTableModel):
-    """
-    A typed container model describing a daily meteorological data record as a set
-    of pandas Series columns.
+    """Table with daily meteorological data.
 
     Attributes:
         STATION (Series[str]): Station identifier (e.g. station code or name).
@@ -696,9 +726,6 @@ class DAILYMETEODATA(BaseTableModel):
         ETREF (Series[float]): Reference evapotranspiration for the day (mm day^-1).
         WET (Series[float]): Fraction (0-1) of the day it was raining,
             necessary when swrain=1
-
-    TODO:
-    format decimals in the variables.
     """
 
     STATION: Series[str]
@@ -881,11 +908,11 @@ boundary_tables = [
 
 
 class GWLEVEL(BaseTableModel):
-    """Table for groundwater levels.
+    """Table for groundwater levels over time.
 
     Attributes:
-        DATE (Series[pa.DateTime]): Date of the groundwater level.
-        GWLEVEL (Series[float]): Groundwater level.
+        DATE1 (Series[pa.DateTime]): Date [dd-mmm-yyyy] (e.g. 01-jan-2000).
+        GWLEVEL (Series[float]): Groundwater level [-1e4..1e3, cm].
     """
 
     DATE1: Series[pa.DateTime]
@@ -893,11 +920,11 @@ class GWLEVEL(BaseTableModel):
 
 
 class QBOT2(BaseTableModel):
-    """Table for bottom boundary flow.
+    """Table for bottom boundary flow over time.
 
     Attributes:
-        DATE2 (Series[pa.DateTime]): Date of the bottom boundary flow.
-        QBOT2 (Series[float]): Bottom boundary flow.
+        DATE2 (Series[pa.DateTime]): Date [dd-mmm-yyyy] (e.g. 01-jan-2000).
+        QBOT2 (Series[float]): Bottom boundary flow [-100..100, cm/d]. Upward flow is positive.
     """
 
     DATE2: Series[pa.DateTime]
@@ -905,11 +932,11 @@ class QBOT2(BaseTableModel):
 
 
 class HAQUIF(BaseTableModel):
-    """Table for aquifer thickness.
+    """Table for average hydraulic head in underling aquifer over time.
 
     Attributes:
-        DATE3 (Series[pa.DateTime]): Date of the aquifer thickness.
-        HAQUIF (Series[float]): Aquifer thickness.
+        DATE3 (Series[pa.DateTime]): Date [dd-mmm-yyyy] (e.g. 01-jan-2000).
+        HAQUIF (Series[float]): Average hydraulic head in underlying aquifer [-1e4..1e3, cm].
     """
 
     DATE3: Series[pa.DateTime]
@@ -917,11 +944,11 @@ class HAQUIF(BaseTableModel):
 
 
 class QBOT4(BaseTableModel):
-    """Table for bottom boundary flow.
+    """Table for bottom boundary flow over time.
 
     Attributes:
-        DATE4 (Series[pa.DateTime]): Date of the bottom boundary flow.
-        QBOT4 (Series[float]): Bottom boundary flow.
+        DATE4 (Series[pa.DateTime]): Date [dd-mmm-yyyy] (e.g. 01-jan-2000).
+        QBOT4 (Series[float]): Bottom boundary flow [-100..100, cm/d]. Upward flow is positive.
     """
 
     DATE4: Series[pa.DateTime]
@@ -929,11 +956,11 @@ class QBOT4(BaseTableModel):
 
 
 class QTAB(BaseTableModel):
-    """Table for height of the water table.
+    """Table bottom boundary flux as function of groundwater level.
 
     Attributes:
-        HTAB (Series[pa.DateTime]): Date of the height of the water table.
-        HTABLE (Series[float]): Height of the water table.
+        HTAB (Series[float]): Groundwater level, negative below soil surface [-1e4..0, cm]
+        QTAB (Series[float]): Bottom boundary flux [-100..100, cm/d]. Upward flow is positive.
     """
 
     HTAB: Series[float]
@@ -941,23 +968,53 @@ class QTAB(BaseTableModel):
 
 
 class HBOT5(BaseTableModel):
-    """Table for bottom compartment pressure head.
+    """Table for bottom compartment pressure head over time.
 
     Attributes:
-        DATE6 (Series[pa.DateTime]): Date of the bottom compartment pressure head.
-        HBOT5 (Series[float]): Bottom compartment pressure head.
+        DATE6 (Series[pa.DateTime]): Date [dd-mmm-yyyy] (e.g. 01-jan-2000).
+        HBOT5 (Series[float]): Bottom compartment pressure head [-1e10..1000, cm].
     """
 
     DATE5: Series[pa.DateTime]
     HBOT5: Series[float]
 
 
+transport_tables = [
+    "TBOT",
+    "CSEEPARR",
+]
+
+
 class DATET(BaseTableModel):
     """Table for time.
+
+    !!! Note:
+        Deprecated from version 0.3.9. Use TBOT instead.
 
     Attributes:
         DATE7 (Series[pa.DateTime]): Date of the time.
         TIME (Series[float]): Time.
+    """
+
+    DATET: Series[pa.DateTime]
+    TBOT: Series[float]
+
+    def __post_init__(self):
+        from warnings import warn
+
+        warn(
+            "The use of `DATET` is deprecated and will be removed in a later version. Please use `TBOT`.",
+            FutureWarning,
+            stacklevel=4,
+        )
+
+
+class TBOT(BaseTableModel):
+    """Table for temperature bottom compartment over time.
+
+    Attributes:
+        DATE7 (Series[pa.DateTime]): Date [dd-mmm-yyyy] (e.g. 01-jan-2000).
+        TBOT (Series[float]): Temperature bottom compartment [-50..50, °C].
     """
 
     DATET: Series[pa.DateTime]
@@ -968,7 +1025,7 @@ class CSEEPARR(BaseTableModel):
     """Table for seepage.
 
     Attributes:
-        DATE8 (Series[pa.DateTime]): Date of the seepage.
+        DATE8 (Series[pa.DateTime]): Date [dd-mmm-yyyy] (e.g. 01-jan-2000).
         CSEEPARR (Series[float]): Seepage.
     """
 
@@ -980,7 +1037,7 @@ class INISSOIL(BaseTableModel):
     """Table for capillary rise.
 
     Attributes:
-        DATE9 (Series[pa.DateTime]): Date of the capillary rise.
+        DATE9 (Series[pa.DateTime]): Date [dd-mmm-yyyy] (e.g. 01-jan-2000).
         CML (Series[float]): Capillary rise.
     """
 
@@ -992,7 +1049,7 @@ class MISC(BaseTableModel):
     """Table for miscellaneous.
 
     Attributes:
-        DATE10 (Series[pa.DateTime]): Date of the miscellaneous.
+        DATE10 (Series[pa.DateTime]): Date [dd-mmm-yyyy] (e.g. 01-jan-2000).
         MISC (Series[float]): Miscellaneous.
     """
 
@@ -1025,17 +1082,17 @@ class DRNTB(BaseTableModel):
     """Drainage characteristics table.
 
     Attributes:
-        LEV (Series[int]): Drainage level [1..5, I].
-        SWDTYP (Series[int]): Type of drainage medium: 1 = drain tube, 2 = open channel.
-        L (Series[float]): Drain spacing [1..100000 m, R].
-        ZBOTDRE (Series[float]): Level of drainage medium bottom [-10000..0 cm, R].
-        GWLINF (Series[float]): Groundwater level influence [-10000..200 cm, R].
-        RDRAIN (Series[float]): Drainage resistance [10..1d5 d, R].
-        RINFI (Series[float]): Infiltration resistance [0..1d5 d, R].
-        RENTRY (Series[float]): Entry resistance [0..1000 d, R].
-        REXIT (Series[float]): Exit resistance [0..1000 d, R].
-        WIDTHR (Series[float]): Width of the drainage medium [0..1000 cm, R].
-        TALUDR (Series[float]): Talud of the drainage medium [0..1000 cm, R].
+        LEV (Series[int]): Drainage level [1..5, -].
+        SWDTYP (Series[int]): Type of drainage medium [1 = drain tube, 2 = open channel].
+        L (Series[float]): Drain spacing [1..1e5, m].
+        ZBOTDRE (Series[float]): Level of drainage medium bottom [-10000..0, cm].
+        GWLINF (Series[float]): Groundwater level influence [-10000..200, cm].
+        RDRAIN (Series[float]): Drainage resistance [10..1e5, d].
+        RINFI (Series[float]): Infiltration resistance [0..1e5, d].
+        RENTRY (Series[float]): Entry resistance [0..1000, d].
+        REXIT (Series[float]): Exit resistance [0..1000, d].
+        WIDTHR (Series[float]): Width of the drainage medium [0..1000, cm].
+        TALUDR (Series[float]): Talud of the drainage medium [0..1000, cm].
     """
 
     LEV: Series[int] = pa.Field(ge=1, le=5)
@@ -1052,28 +1109,32 @@ class DRNTB(BaseTableModel):
 
 
 class DRAINAGELEVELTOPPARAMS(BaseTableModel):
-    """Drainage level top parameters table.
-
-    I couldn't find the description of this table. It occurs in the swa.dra file
-    of the Hupselbrook example, but not in the templates.
+    """Drainage level with switches to adjust the top of each model discharge layer.
 
     Attributes:
-        SWTOPDISLAY (Series[Literal[0, 1]]): Switch for each drainage level to distribute drainage flux vertically with a given position of the top of the model discharge layers [Y=1, N=0]
-        ZTOPDISLAY (Series[float]): Array with depth of top of model discharge layer for each drain level [-10000.0..0.0, cm, R]
-        FTOPDISLAY (Series[float]): Array with factor of top of model discharge layer for each drain level [0.0..1.0, -, R]
+        LEVEL (Series[Literal[1, 2, 3, 4, 5]]) : Drainage level.
+        SWTOPDISLAY (Series[Literal[0, 1]]): Switch for each drainage level to
+            distribute drainage flux vertically with a given position of the top
+            of the model discharge layers [Y=1, N=0].
+        ZTOPDISLAY (Series[float]): Array with depth of top of model discharge
+            layer for each drain level [-10000.0..0.0, cm].
+        FTOPDISLAY (Series[float]): Array with factor of top of model discharge
+            layer for each drain level [0.0..1.0, -].
     """
 
+    LEVEL: Series[Literal[1, 2, 3, 4, 5]]
     SWTOPDISLAY: Series[Literal[0, 1]]
     ZTOPDISLAY: Series[float] = pa.Field(ge=-10000.0, le=0.0)
     FTOPDISLAY: Series[float] = pa.Field(ge=0.0, le=1.0)
 
 
 class DATOWLTB1(BaseTableModel):
-    """Table for drainage water level.
+    """Table to specify water level in open channel of drainage level 1.
 
     Attributes:
-        DATOWL1 (Series[pa.DateTime]): Date of the drainage water level.
-        WLEVEL (Series[float]): Drainage water level.
+        DATOWL1 (Series[pa.DateTime]): Date [dd-mmm-yyyy], e.g. 12-jan-2000
+        LEVEL1 (Series[float]): Surface water level, negative below soil surface
+            [?..?, cm].
     """
 
     DATOWL1: Series[pa.DateTime]
@@ -1081,11 +1142,12 @@ class DATOWLTB1(BaseTableModel):
 
 
 class DATOWLTB2(BaseTableModel):
-    """Table for drainage water level.
+    """Table to specify water level in open channel of drainage level 2.
 
     Attributes:
-        DATOWL2 (Series[pa.DateTime]): Date of the drainage water level.
-        LEVEL2 (Series[float]): Drainage water level.
+        DATOWL2 (Series[pa.DateTime]): Date [dd-mmm-yyyy], e.g. 12-jan-2000
+        LEVEL2 (Series[float]): Surface water level, negative below soil surface
+            [?..?, cm].
     """
 
     DATOWL2: Series[pa.DateTime]
@@ -1093,11 +1155,12 @@ class DATOWLTB2(BaseTableModel):
 
 
 class DATOWLTB3(BaseTableModel):
-    """Table for drainage water level.
+    """Table to specify water level in open channel of drainage level 3.
 
     Attributes:
-        DATOWL3 (Series[pa.DateTime]): Date of the drainage water level.
-        LEVEL3 (Series[float]): Drainage water level.
+        DATOWL3 (Series[pa.DateTime]): Date [dd-mmm-yyyy], e.g. 12-jan-2000
+        LEVEL3 (Series[float]): Surface water level, negative below soil surface
+            [?..?, cm].
     """
 
     DATOWL3: Series[pa.DateTime]
@@ -1105,11 +1168,12 @@ class DATOWLTB3(BaseTableModel):
 
 
 class DATOWLTB4(BaseTableModel):
-    """Table for drainage water level.
+    """Table to specify water level in open channel of drainage level 4.
 
     Attributes:
-        DATOWL4 (Series[pa.DateTime]): Date of the drainage water level.
-        LEVEL4 (Series[float]): Drainage water level.
+        DATOWL4 (Series[pa.DateTime]): Date [dd-mmm-yyyy], e.g. 12-jan-2000
+        LEVEL4 (Series[float]): Surface water level, negative below soil surface
+            [?..?, cm].
     """
 
     DATOWL4: Series[pa.DateTime]
@@ -1117,11 +1181,12 @@ class DATOWLTB4(BaseTableModel):
 
 
 class DATOWLTB5(BaseTableModel):
-    """Table for drainage water level.
+    """Table to specify water level in open channel of drainage level 5.
 
     Attributes:
-        DATOWL5 (Series[pa.DateTime]): Date of the drainage water level.
-        LEVEL5 (Series[float]): Drainage water level.
+        DATOWL5 (Series[pa.DateTime]): Date [dd-mmm-yyyy], e.g. 12-jan-2000
+        LEVEL5 (Series[float]): Surface water level, negative below soil surface
+            [?..?, cm].
     """
 
     DATOWL5: Series[pa.DateTime]
@@ -1132,9 +1197,8 @@ class SECWATLVL(BaseTableModel):
     """Water level in secondary water course as function of date.
 
     Attributes:
-        DATE2: (Series[DateTime]): Date of the water level [YYYY-MM-DD]
-        WLS: (Series[float]): Water level in secondary water course [altcu-1000..altcu-0.01, cm]
-
+        DATE2 (Series[DateTime]): Date of the water level [dd-mmm-yyyy] (e.g. 01-jan-2000).
+        WLS (Series[float]): Water level in secondary water course [altcu-1000..altcu-0.01, cm]
     """
 
     DATE2: Series[pa.DateTime]
@@ -1145,16 +1209,16 @@ class MANSECWATLVL(BaseTableModel):
     """Parameters for each management period.
 
     Attributes:
-        IMPER_4B: (Series[float]): Index of management period [1..nmper, -]
-        IMPEND: (Series[pa.DateTime]): Date that period ends [YYYY-MM-DD]
-        SWMAN: (Series[float]): Type of water management [1..2, -]
+        IMPER_4B (Series[float]): Index of management period [1..nmper, -]
+        IMPEND (Series[pa.DateTime]): Date that period ends [YYYY-MM-DD]
+        SWMAN (Series[float]): Type of water management [1..2, -]
 
             * 1: fixed weir crest
             * 2: automatic weir
 
-        WSCAP: (Series[float]): Surface water supply capacity [0..100, cm/d]
-        WLDIP: (Series[float]): Allowed dip of surface water level before starting supply [0..100, cm]
-        INTWL: (Series[float]): Length of water-level adjustment period (SWMAN = 2 only) [1..31, d]
+        WSCAP (Series[float]): Surface water supply capacity [0..100, cm/d]
+        WLDIP (Series[float]): Allowed dip of surface water level before starting supply [0..100, cm]
+        INTWL (Series[float]): Length of water-level adjustment period (SWMAN = 2 only) [1..31, d]
     """
 
     IMPER_4B: Series[float]
@@ -1166,6 +1230,20 @@ class MANSECWATLVL(BaseTableModel):
 
 
 class QWEIR(BaseTableModel):
+    """Table with parameters exponential weir discharge for all management periods.
+
+    Attributes:
+        IMPER_4C (Series[float]): Index of management period [1..nmper, -]
+        HBWEIR (Series[float]): Weir crest [altcu-zbotdr..altcu+100, cm].
+            Levels above soil surface are allowed, but simulated surface water
+            levels should remain below 100 cm above soil surface.
+            The crest must be higher than the deepest channel bottom of the
+            secondary system (ZBOTDR(1 or 2).
+            Represents the lowest possible weir position if swman = 2.
+        ALPHAW (Series[float]): Alpha-coefficient of discharge formula [0.1..50.0, -]
+        BETAW (Series[float]): Beta-coefficient of discharge formula [0.5..3.0, -]
+    """
+
     IMPER_4C: Series[float]
     HBWEIR: Series[float]
     ALPHAW: Series[float]
@@ -1173,6 +1251,18 @@ class QWEIR(BaseTableModel):
 
 
 class QWEIRTB(BaseTableModel):
+    """Table with parameters of weir discharge for all management periods.
+
+    Attributes:
+        IMPER_4D (Series[float]): Index of management period [1..nmper, -]
+        ITAB (Series[float]): Index per management period [1..10, -]
+        HTAB (Series[float]): Surface water level [altcu-1000..altcu+100, cm].
+            First value for each period = altcu + 100 cm).
+        QTAB (Series[float]): Discharge [0..500, cm/d].
+            Should go down to a value of zero at a level that is higher than
+            the deepest channel bottom of secondary surface water system.
+    """
+
     IMPER_4D: Series[float]
     IMPTAB: Series[float]
     HTAB: Series[float]
@@ -1180,11 +1270,25 @@ class QWEIRTB(BaseTableModel):
 
 
 class PRIWATLVL(BaseTableModel):
+    """Table with water level in the primary water course over time.
+
+    Attributes:
+        DATE1 (Series[pa.DateTime]): Date [dd-mmm-yyyy] (e.g. 01-jan-2000).
+        WLP (Series[float]): Water level in the primary water course [altcu-1000..altcu-0.01, cm]
+    """
+
     DATE1: Series[pa.DateTime]
     WLP: Series[float]
 
 
 class QDRNTB(BaseTableModel):
+    """Table relating the drainage flux to groundwater level.
+
+    Attributes:
+        QDRAIN (Series[float]): Drainage flux [-100..1000, cm/d]
+        GWL (Series[float]): Groundwater level, negative below soil surface [-1000..10, cm]
+    """
+
     QDRAIN: Series[float]
     GWL: Series[float]
 
